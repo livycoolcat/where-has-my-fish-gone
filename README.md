@@ -9,7 +9,7 @@ A classifier that labels fish species (hake, herring, salmon, juvenile salmon) i
 - `notes/`: background and research notes
 - `data/`: where the data goes (not committed)
 - `scripts/count_species_evr.py`: counts labelled regions per species, week and folder from the `.evr` files in `data/` (`python scripts/count_species_evr.py`); CSVs go to `data/`
-
+  `script/sort_raw_by_week.py`: use this to split raw data into weeks
 ---
 
 ## Getting the data
