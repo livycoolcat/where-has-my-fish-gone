@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """
+
+I did use AI for this because I wanted to quickly count the regions. sorray
 Count regions per species in Echoview region files (.evr).
 
 Region type: https://support.echoview.com/WebHelp/Reference/File_Formats/Export_File_Formats/2D_Region_definition_file_format.htm
@@ -11,6 +13,13 @@ Region type: https://support.echoview.com/WebHelp/Reference/File_Formats/Export_
 
 Run: python3 scripts/count_species_evr.py your_path_to_the_region_folder --analysis-only
 
+Deployment is Sat to Friday 
+Week 1 = Sat 2025-03-01
+
+Outputs:
+  Malaspina2025_species_counts.csv   regions per species
+  Malaspina2025_species_by_week.csv  regions per species per week
+  Malaspina2025_regions.csv          one row per region
 """
 
 import argparse
@@ -21,6 +30,9 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass, asdict
 from datetime import date
 from pathlib import Path
+
+WEEK1_START = date(2025, 3, 1)  # Saturday the deployment started (Week 1)
+WEEK_RE = re.compile(r"week\s*0*(\d+)", re.IGNORECASE)
 
 REGION_TYPES = {
     "0": "bad (no data)",
@@ -68,13 +80,22 @@ def _is_points_line(line: str, n_points: int) -> bool:
     return DATE_RE.match(tok[0]) is not None and tok[-1] in REGION_TYPES
 
 
-def _iso_week(yyyymmdd: str) -> str:
+def _deployment_week(yyyymmdd: str) -> str:
+    """Saturday-to-Friday deployment week: Week 1 = WEEK1_START to WEEK1_START + 6 days."""
     try:
         d = date(int(yyyymmdd[:4]), int(yyyymmdd[4:6]), int(yyyymmdd[6:8]))
     except (ValueError, IndexError):
         return ""
-    y, w, _ = d.isocalendar()
-    return f"{y}-W{w:02d}"
+    return str((d - WEEK1_START).days // 7 + 1)
+
+
+def _week_from_path(rel: Path) -> str:
+    """Week number from the file name (Week48.EVR), or from a week48/ folder above it."""
+    for part in [rel.name, *reversed(rel.parent.parts)]:
+        m = WEEK_RE.search(part)
+        if m:
+            return m.group(1)
+    return ""
 
 
 def parse_evr(path: Path, root: Path | None = None) -> list[Region]:
@@ -89,6 +110,7 @@ def parse_evr(path: Path, root: Path | None = None) -> list[Region]:
     except (IndexError, ValueError):
         expected = None
 
+    file_week = _week_from_path(rel)
     regions: list[Region] = []
     i = 2
     n = len(lines)
@@ -110,10 +132,14 @@ def parse_evr(path: Path, root: Path | None = None) -> list[Region]:
             classification = lines[j - 1].strip() if j - 1 > i else ""
             name = lines[j + 1].strip() if j + 1 < n else ""
             rtype = lines[j].split()[-1]
+            date_week = _deployment_week(bbox[0])
+            if file_week and date_week and file_week != date_week:
+                print(f"  warning: {rel}: region {region_id} starts {bbox[0]} = week {date_week}, "
+                      f"but the file is week {file_week}", file=sys.stderr)
             regions.append(Region(
                 file=str(rel),
                 folder=folder,
-                week=_iso_week(bbox[0]),
+                week=file_week or date_week,
                 region_id=region_id,
                 name=name,
                 classification=classification,
@@ -155,16 +181,21 @@ def main() -> int:
     if not args.path.is_dir():
         print(f"Folder not found: {args.path}", file=sys.stderr)
         return 1
-    files = sorted(p for p in args.path.iterdir() if p.suffix.lower() == ".evr")
+    # search subfolders too (e.g. Weeks/week1/Week1.EVR); skip hidden/checkpoint folders
+    files = sorted(
+        (p for p in args.path.rglob("*")
+         if p.is_file() and p.suffix.lower() == ".evr"
+         and not any(part.startswith(".") for part in p.relative_to(args.path).parts)),
+        key=lambda p: (int(_week_from_path(p.relative_to(args.path)) or 0), str(p)))
     if not files:
-        print(f"No .evr files found in {args.path}", file=sys.stderr)
+        print(f"No .evr files found in {args.path} or its subfolders", file=sys.stderr)
         return 1
 
     # read every region from every file
     all_regions: list[Region] = []
     for f in files:
         try:
-            all_regions.extend(parse_evr(f))
+            all_regions.extend(parse_evr(f, root=args.path))
         except Exception as e:  # keep going on a bad file
             print(f"  error: {f}: {e}", file=sys.stderr)
 
@@ -182,6 +213,25 @@ def main() -> int:
         w.writerow(["species", "n_regions"])
         for sp, c in totals.most_common():
             w.writerow([sp, c])
+
+    # regions per species per week (for the week-based train/val/test split)
+    by_week: dict[str, Counter[str]] = defaultdict(Counter)
+    for r in counted:
+        by_week[r.week][label_for(r)] += 1
+    species = [sp for sp, _ in totals.most_common()]
+    with open(args.out / "Malaspina2025_species_by_week.csv", "w", newline="") as fh:
+        w = csv.writer(fh)
+        w.writerow(["week", *species, "total"])
+        for wk in sorted(by_week, key=lambda s: int(s) if s.isdigit() else 0):
+            row = [by_week[wk][sp] for sp in species]
+            w.writerow([wk, *row, sum(row)])
+
+    # one row per region (all regions, with region type, so nothing is lost)
+    with open(args.out / "Malaspina2025_regions.csv", "w", newline="") as fh:
+        w = csv.DictWriter(fh, fieldnames=[*asdict(all_regions[0]).keys(), "label"])
+        w.writeheader()
+        for r in all_regions:
+            w.writerow({**asdict(r), "label": label_for(r)})
 
     # print the summary 
     print(f"\nParsed {len(files)} .evr file(s), {len(all_regions)} region(s); counted {len(counted)}.")
@@ -206,5 +256,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-
-
