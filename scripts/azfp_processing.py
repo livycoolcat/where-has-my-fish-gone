@@ -42,19 +42,15 @@ YEAR_MONTH = "2026-02"
 
 # Deployment coordinates
 # Best these remain hardcoded as I took them from the R file and they shouldnt change for all of the Malaspina data
-LATITUDE = 48.37295
-LONGITUDE = 125.8798333
+LATITUDE = 49.5348
+LONGITUDE = -124.0110
 
 # AZFP channel identifiers
 CHANNEL_67 = "55158-67-1"
 CHANNEL_125 = "55158-125-2"
 
 # Environmental parameters
-SALINITY = 30  # PSU - currently made but it needs to be calculated from the metadata
-
-# Daytime filtering (hourly files)
-START_HOUR = 5
-END_HOUR = 20
+SALINITY = 35  # PSU - currently made but it needs to be calculated from the metadata
 
 
 # --------------------------------------------------
@@ -65,13 +61,6 @@ def load_echo_files():
 
     # Find all AZFP .01A files
     echo_files = sorted(glob.glob(RAW_DATA_PATH))
-
-    # Onlh use files between 5 AM and 8 PM
-    # We could change this to more approproate hrs
-    echo_files = [
-        file for file in echo_files
-        if START_HOUR <= int(file[-6:-4]) < END_HOUR
-    ]
 
     print(f"Number of echo files: {len(echo_files)}")
 
@@ -190,7 +179,7 @@ def calculate_frequency_difference(ds_Sv):
     Sv_67 = ds_Sv["Sv"].sel(channel=CHANNEL_67)
     Sv_125 = ds_Sv["Sv"].sel(channel=CHANNEL_125)
 
-    Sv_difference = Sv_125 - Sv_67
+    Sv_difference = Sv_67 - Sv_125
 
     # Plot dB difference
     Sv_difference.plot(
