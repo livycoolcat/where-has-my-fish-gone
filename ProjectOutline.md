@@ -6,24 +6,45 @@
 
 Acoustic surveys are widely used to monitor fish stocks and zooplankton (Rousseau et al., 2022). Primitive research into acoustic fish detection dates back to 1929, when sound waves were used to detect goldfish in a pond (Johannesson & Mitson, 1983). Modern echosounders transmit sound waves and record returning echoes to study the distribution and abundance of aquatic organisms. For example, Rousseau et al. (2018) used fixed, autonomous Acoustic Zooplankton Fish Profilers (AZFPs) to monitor juvenile salmon migration in the Discovery Islands and Johnstone Strait, British Columbia.
 
-Acoustic data analysis remains time-consuming and requires expert knowledge to classify biological targets from noise and other acoustic signals (Slonimer, 2022). This limits the efficiency of processing large datasets. Our project aims to develop models to classify fish targets in labelled AZFP data provided by Fisheries and Oceans Canada (DFO). This involves preprocessing and standardizing the data, developing models informed by existing research, and evaluating their performance. A further challenge, which we address as a stretch goal is determining whether models can generalize across different monitoring locations, hardware, and instrument calibrations.
+Acoustic data analysis remains time-consuming and requires expert knowledge to classify biological targets from noise and other acoustic signals (Slonimer, 2022). This limits the efficiency of processing large datasets. Our project aims to develop models to classify fish targets in labelled AZFP data provided by Fisheries and Oceans Canada (DFO). This involves preprocessing and standardizing the data, developing models informed by existing research, and evaluating their performance. 
 
 ## 2. Problem Statement
 
-**Primary Goal:**
-Build and compare a random forest and a CNN that classify fish species in labelled echogram regions from one DFO moored echosounder site. Starting with herring vs salmon and extending to additional species (ex. Hake, juvenile salmon) where enough labelled regions exist.
-
-**Stretch goals:**
-- Test how well both trained models generalize to a second, unseen site without retraining
-- Develop a visualization dashboard to demonstrate the classification results
+This project builds and compares two classifiers that label echogram regions from a single DFO moored echosounder site as herring or salmon: a random forest (RF) trained on per-region acoustic, shape, and context features, and a convolutional neural network (CNN) trained on multi-frequency echogram images. Both models are trained and evaluated on the same data split, so their performance can be directly compared. As stretch goals, we will test how well both models generalize to a second, unseen site without retraining.
 
 ## 4. Dataset Description
 
-We're working with echosounder data from Fisheries and Oceans Canada (DFO), shared with their permission. The full dataset is 4 TB and covers DFO's moored surveys from 2022 to 2025 at several sites on the BC coast, including Barkley Canyon, Brooks Peninsula, Bamfield, and the Malaspina Strait. It includes both the raw echosounder data and the files from DFO's Echoview processing.
+### Data Collection
 
-We're only using data from DFO's Acoustic Zooplankton Fish Profiler (AZFP) echosounders.
-It's moored near the seafloor, looking up, for a year (DFO's deployments run 365 days), pinging at two frequencies ~ 67 kHz and ~ 120-125 kHz. Everything is saved to a memory card as .01A files.
-Each deployment comes with the raw `.01A` data files, an `.XML` and a `.DPL` file with the instrument settings and calibration. The labeled regions (`.evr`) and surface/ bottom lines (`.evl`) from Echoview give us our training labels.
+The data were provided by Fisheries and Oceans Canada (DFO) and were collected by an autonomous Acoustic Zooplankton Fish Profiler (AZFP; ASL Environmental Sciences) moored on the seafloor in the Malaspina Strait, British Columbia. The instrument was deployed at a depth of 110 m looking upward and recorded continuously at 67 and 125 kHz from 1 March 2025 to 1 March 2026. Acquisition settings are listed in Table 1. They were taken from the deployment's `.XML` and `.DPL` files and remained constant over the year. The raw data consist of 8,745 hourly `.01A` files, totalling about 31 GB.
+
+**Table 1.** Acquisition settings of the Malaspina Strait AZFP deployment (March 2025–March 2026). Pulse durations are given for 67 kHz / 125 kHz.
+
+| Parameter | Value |
+|---|---|
+| Frequencies | 67, 125 kHz |
+| Ping interval | 12 s |
+| Pulse duration | 500 µs / 300 µs |
+| Digitization rate | 40 kHz |
+| Range bin size | 0.109 m |
+| Range bins | 1,192 |
+| Maximum range | 129.7 m |
+| Instrument depth | 110 m |
+
+### Labelled Regions
+
+DFO analysts annotated the data in Echoview, producing weekly region files (`.evr`) and surface and bottom lines (`.evl`). These contain 427 labelled regions (Table 2). Hake and krill/zooplankton have too few examples to train on, so we use the 353 herring and salmon regions.
+
+**Table 2.** DFO-labelled analysis regions in the Malaspina Strait deployment, by class.
+
+| Class | Regions |
+|---|---:|
+| Herring | 217 |
+| Salmon | 136 |
+| Unclassified | 70 |
+| Krill/zooplankton | 3 |
+| Hake | 1 |
+| **Total** | **427** |
 
 ## 5. Proposed Methodology
 
@@ -77,28 +98,36 @@ Each deployment comes with the raw `.01A` data files, an `.XML` and a `.DPL` fil
 
 **Preprocessing**
 
-**Objective 1: Data inventory, conversion, and label audit**
-- PI1 (basic): Verify the annotations. DFO reports that the deployments have been annotated in Echoview. Export `.evr` regions, then count classed regions per species, site and deployment week
-- PI2 (basic): Convert one deployment's .01A files to SV with echopype using its `.XML`/ `.DPL` calibration. Save as NetCDF/Zarr
-- PI3 (basic): Parse `.evr` files with echoregions (OSOceanAcoustics, n.d.). Produce a table of every region (site, deployment, start/ end time, depth range, class, region type)
-- PI4 (expected): Check that region time and depths line up with the Sv data. Check time zones (Echoview vs AZFP clock) and the depth reference and confirm visually on echograms
-- PI5 (expected/ advanced): scale conversion to all sites and years with Dask/ Zarr chunking. Document calibration and instrument differences between deployments like frequency, ping rate, and bin size (Lee et al., 2024)
+**Objective 1: Data inventory and label audit**
+- PI1 (basic, done): Parse all 53 weekly `.evr` files into a region table and count regions per class and week
+- PI2 (basic, done): Extract settings and calibration from every month's `.XML`/`.DPL` files and flag inconsistencies
+- PI3 (basic, done): Sort the `.01A` files into weekly folders matching the `.evr` weeks
+- PI4 (expected, in progress): Complete the Sv calibration table by cross-checking with the `.ECS` file
+- PI5 (expected, not started): Confirm that region times and depths align with the Sv echograms, including the clock time zone
+
+All 53 weekly Echoview region files were parsed into a single table of 1,054 regions, recording each region's time span, depth range, class and type (PI1). Each file was checked against its expected weekly time window, and all 53 were consistent. Instrument settings and calibration values were extracted from every month's `.XML` and `.DPL` files (PI2). They were constant over the deployment, apart from a disagreement in the number of averaged burst pings between the two file types. The raw files were sorted into weekly folders so that each week of Sv data matches its region file (PI3).
+
+The Sv calibration table is partly complete (PI4): the transducer coefficients have been cross-checked against the Echoview calibration file, but sound speed, absorption and salinity still need to be derived from the RBR sensor data. The main open issue is that the instrument clock does not record its time zone, so region alignment with the Sv data (PI5) cannot yet be confirmed.
 
 **Objective 2: Boundary removal**
-- PI1 (basic): Flag and remove bad pings, gaps and "bad data" regions
-- PI2 (basic): Mask the surface and near-field using `.evl` lines where they exist
-- PI3 (expected): Implement automatic surface detection for periods with no `.evl` lines. First test the Echofilter model (Lowe et al., 2022) and then try a detector based on high-frequency Sv gradient (Slonimer, 2022).
-- PI4 (expected): Validate it against the existing Echoview .evl lines
-- PI5 (expected/ advanced): Seafloor or obstruction masking if needed (echopype detect_seafloor)
+- PI1 (basic, in progress): Flag and remove bad pings, gaps and Echoview "bad data" regions
+- PI2 (basic, not started): Mask the surface and near-field using the `.evl` lines where they exist
+- PI3 (expected, not started): Detect the surface automatically for periods without `.evl` lines, first testing Echofilter (Lowe et al., 2022) and then a detector based on the high-frequency Sv gradient (Slonimer, 2022)
+- PI4 (expected, not started): Validate automatic surface detection against the existing `.evl` lines
+- PI5 (advanced, not started): Mask the seafloor or obstructions if they appear in the echograms
+
+The 626 bad-data regions identified during the label audit (Objective 1) give the time and depth extents to be removed for PI1. The next step is to convert them into masks on the Sv grid, together with pings that contain missing or corrupted samples. Surface masking with the `.evl` lines (PI2) depends on the region alignment check (Objective 1, PI5), since the lines share the same time and depth references as the regions. Echofilter was trained on Simrad EK80 data rather than AZFP recordings, so it may need adjusting before it performs well on this dataset. The gradient-based detector is a fallback if it does not.
 
 **ML: CNN**
 
-**Objective 3: Build the Image dataset**
-- PI1 (basic): Extract the cleaned Sv inside each DFO labelled region as a fixed size image
-- PI2 (basic): Stack both frequencies (Sv 67 kHz, Sv 125 kHz) and their difference as input channels, scaled identically (fix dB range) across all images
-- PI3 (expected): Sample "no fish" background images from empty water
-- PI4 (expected): Add data augmentation (crop shifts, time flips, small level offsets) because there are not many labelled regions
-- PI5 (advanced): context channels (depth below surface, solar elevation). Species sit at different depths and behave differently with light, adding solar elevation has been seen to help with accuracy (Slonimer et al., 2023).
+**Objective 3: Build the CNN image dataset**
+- PI1 (basic, in progress): Extract the cleaned Sv inside each labelled region as a fixed-size image
+- PI2 (basic, not started): Stack Sv at 67 kHz, Sv at 125 kHz and their difference as input channels, using one fixed dB range for all images
+- PI3 (expected, not started): Sample "no fish" background images from empty water
+- PI4 (expected, not started): Add data augmentation (crop shifts, time flips and small level offsets) to compensate for the small number of labelled regions
+- PI5 (advanced, not started): Add context channels for depth below the surface and solar elevation, which improved accuracy in previous work (Slonimer et al., 2023)
+
+The time, depth and polygon outline of each of the herring and salmon regions have been exported, together with their assignment to training, validation and test sets, so the regions can be cut out of the Sv data once it has been cleaned (Objectives 1 and 2). Images will be scaled with a single fixed dB range rather than per image, so that differences in backscatter strength between species are preserved (Slonimer, 2022). With only 136 salmon regions, augmentation (PI4) is likely to matter more than in typical image tasks.
 
 ### Amanda Tu
 
