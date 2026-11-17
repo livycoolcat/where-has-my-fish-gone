@@ -16,7 +16,7 @@ This project builds and compares two classifiers that label echogram regions fro
 
 ### Data Collection
 
-The data were provided by Fisheries and Oceans Canada (DFO) and were collected by an autonomous Acoustic Zooplankton Fish Profiler (AZFP; ASL Environmental Sciences) moored on the seafloor in the Malaspina Strait, British Columbia. The instrument was deployed at a depth of 110 m looking upward and recorded continuously at 67 and 125 kHz from 1 March 2025 to 1 March 2026. Acquisition settings are listed in Table 1. They were taken from the deployment's `.XML` and `.DPL` files and remained constant over the year. The raw data consist of 8,745 hourly `.01A` files, totalling about 31 GB.
+The data were provided by Fisheries and Oceans Canada (DFO) and were collected by an autonomous Acoustic Zooplankton Fish Profiler (AZFP; ASL Environmental Sciences) moored on the seafloor in the Malaspina Strait, British Columbia. The instrument was deployed at a depth of 117 m looking upward and recorded continuously at 67 and 125 kHz from 1 March 2025 to 1 March 2026. Acquisition settings are listed in Table 1. They were taken from the deployment's `.XML` and `.DPL` files and remained constant over the year. The raw data consist of 8,745 hourly `.01A` files, totalling about 31 GB.
 
 **Table 1.** Acquisition settings of the Malaspina Strait AZFP deployment (March 2025–March 2026). Pulse durations are given for 67 kHz / 125 kHz.
 
@@ -29,7 +29,7 @@ The data were provided by Fisheries and Oceans Canada (DFO) and were collected b
 | Range bin size | 0.109 m |
 | Range bins | 1,192 |
 | Maximum range | 129.7 m |
-| Instrument depth | 110 m |
+| Instrument depth | 117 m | 
 
 ### Labelled Regions
 
@@ -102,12 +102,12 @@ DFO analysts annotated the data in Echoview, producing weekly region files (`.ev
 - PI1 (basic, done): Parse all 53 weekly `.evr` files into a region table and count regions per class and week
 - PI2 (basic, done): Extract settings and calibration from every month's `.XML`/`.DPL` files and flag inconsistencies
 - PI3 (basic, done): Sort the `.01A` files into weekly folders matching the `.evr` weeks
-- PI4 (expected, in progress): Complete the Sv calibration table by cross-checking with the `.ECS` file
+- PI4 (expected, done): Complete the Sv calibration table by cross-checking with the `.ECS` file
 - PI5 (expected, not started): Confirm that region times and depths align with the Sv echograms, including the clock time zone
 
 All 53 weekly Echoview region files were parsed into a single table of 1,054 regions, recording each region's time span, depth range, class and type (PI1). Each file was checked against its expected weekly time window, and all 53 were consistent. Instrument settings and calibration values were extracted from every month's `.XML` and `.DPL` files (PI2). They were constant over the deployment, apart from a disagreement in the number of averaged burst pings between the two file types. The raw files were sorted into weekly folders so that each week of Sv data matches its region file (PI3).
 
-The Sv calibration table is partly complete (PI4): the transducer coefficients have been cross-checked against the Echoview calibration file, but sound speed, absorption and salinity still need to be derived from the RBR sensor data. The main open issue is that the instrument clock does not record its time zone, so region alignment with the Sv data (PI5) cannot yet be confirmed.
+The Sv calibration table is complete (PI4): the transducer coefficients matched DFO’s Echoview calibration files for all 12 months, and each month’s sound speed and absorption were taken directly from those files, so salinity does not need to be estimated. The cross-check also showed that the instrument sits at about 117 m rather than the 110 m in its header. The main open issue is that the instrument clock does not record its time zone, so region alignment with the Sv data (PI5) cannot yet be confirmed.
 
 **Objective 2: Boundary removal**
 - PI1 (basic, in progress): Flag and remove bad pings, gaps and Echoview "bad data" regions
