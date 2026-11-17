@@ -4,9 +4,9 @@
 
 ## 1. Project Overview
 
-Acoustic surveys are widely used to monitor fish stocks and zooplankton (Rousseau et al., 2022). Primitive research into acoustic fish detection dates back to 1929, when sound waves were used to detect goldfish in a pond (Johannesson & Mitson, 1983). Modern echosounders transmit sound waves and record returning echoes to study the distribution and abundance of aquatic organisms. For example, Rousseau et al. (2018) used fixed, autonomous Acoustic Zooplankton Fish Profilers (AZFPs) to monitor juvenile salmon migration in the Discovery Islands and Johnstone Strait, British Columbia.
+Acoustic surveys are widely used to monitor fish stocks and zooplankton [1]. Primitive research into acoustic fish detection dates back to 1929, when sound waves were used to detect goldfish in a pond [2]. Modern echosounders transmit sound waves and record returning echoes to study the distribution and abundance of aquatic organisms. For example, Rousseau et al. [3] used fixed, autonomous Acoustic Zooplankton Fish Profilers (AZFPs) to monitor juvenile salmon migration in the Discovery Islands and Johnstone Strait, British Columbia.
 
-Acoustic data analysis remains time-consuming and requires expert knowledge to classify biological targets from noise and other acoustic signals (Slonimer, 2022). This limits the efficiency of processing large datasets. Our project aims to develop models to classify fish targets in labelled AZFP data provided by Fisheries and Oceans Canada (DFO). This involves preprocessing and standardizing the data, developing models informed by existing research, and evaluating their performance. 
+Acoustic data analysis remains time-consuming and requires expert knowledge to classify biological targets from noise and other acoustic signals [4]. This limits the efficiency of processing large datasets. Our project aims to develop models to classify fish targets in labelled AZFP data provided by Fisheries and Oceans Canada (DFO). This involves preprocessing and standardizing the data, developing models informed by existing research, and evaluating their performance. 
 
 ## 2. Problem Statement
 
@@ -56,9 +56,9 @@ DFO analysts annotated the data in Echoview, producing weekly region files (`.ev
 
 ## 6. Tools and Technologies
 
-- **Python and Echopype:** Echopype is an open-source Python library for interoperable and scalable echosounder data processing (Lee et al., 2024). It supports conversion of raw AZFP echosounder data files (.01A) into standardized NetCDF datasets which can then be analyzed and processed (Echopype Developers, 2024). It allows for integration with Python machine learning libraries which makes it suitable for this project.
+- **Python and Echopype:** Echopype is an open-source Python library for interoperable and scalable echosounder data processing [5]. It supports conversion of raw AZFP echosounder data files (.01A) into standardized NetCDF datasets which can then be analyzed and processed [6]. It allows for integration with Python machine learning libraries which makes it suitable for this project.
 - **Echofilter:** open-source deep-learning tool that detects the surface in upward looking echosounder data 
-- **Xarray, Dask and Zarr:** Echopype is built on xarray; Zarr stores data in compressed chunks and Dask processes those chunks in parallel (Lee et al., 2024)
+- **Xarray, Dask and Zarr:** Echopype is built on xarray; Zarr stores data in compressed chunks and Dask processes those chunks in parallel [5]
 - **NumPy, Scipy and scikit-image:** used for array processing, filtering and morphological operations
 - **Pvlib or astral:** calculate solar elevation from ping timestamps and mooring coordinates
 - **Pytorch and torchvision:** used to build and train CNN
@@ -86,10 +86,10 @@ DFO analysts annotated the data in Echoview, producing weekly region files (`.ev
 
 ## 9. Related Work
 
-- **Rousseau et al. (2022):** DFO study using a seafloor-mounted, upward-looking, multi-frequency AZFP in Okisollo Channel (Discovery Islands), the same setup as our data. A random forest on per-school acoustic, shape and depth features separated juvenile salmon from herring with 98% accuracy, using daytime data only, background noise removal and a multi-frequency fish mask. Our RF baseline, feature set and fish mask follow this paper. 
-- **Marques et al. (2021):** Uses Mask R-CNN to outline herring and juvenile salmon schools in 67 kHz echograms from DFO's seafloor AZFP in Okisollo Channel, with 153 herring and 252 salmon examples. Training from scratch performed poorly, so the model started from pretrained weights (transfer learning), which supports our use of a pretrained ResNet-18. 
-- **Slonimer (2022); Slonimer et al. (2023):** Trains a U-Net to label every echogram pixel as herring, salmon, bubbles, surface or background, using AZFP data at 67, 125, 200 and 455 kHz stacked as input channels plus depth and solar elevation channels. Reached F1 scores of 93.0% (herring), 87.3% (salmon) and 86.5% (bubbles), and the added depth and solar elevation channels improved accuracy. Source for our fixed dB scaling, context channels and surface detection approach. 
-- **Pala et al. (2024):** Their model first learns from unlabelled echogram patches, then is fine-tuned on the few labelled ones. Open-source code exists. Relevant because most of our year-long recordings are unlabelled. 
+- **Rousseau et al. [1]:** DFO study using a seafloor-mounted, upward-looking, multi-frequency AZFP in Okisollo Channel (Discovery Islands), the same setup as our data. A random forest on per-school acoustic, shape and depth features separated juvenile salmon from herring with 98% accuracy, using daytime data only, background noise removal and a multi-frequency fish mask. Our RF baseline, feature set and fish mask follow this paper. 
+- **Marques et al. [7]:** Uses Mask R-CNN to outline herring and juvenile salmon schools in 67 kHz echograms from DFO's seafloor AZFP in Okisollo Channel, with 153 herring and 252 salmon examples. Training from scratch performed poorly, so the model started from pretrained weights (transfer learning), which supports our use of a pretrained ResNet-18. 
+- **Slonimer [4]; Slonimer et al. [8]:** Trains a U-Net to label every echogram pixel as herring, salmon, bubbles, surface or background, using AZFP data at 67, 125, 200 and 455 kHz stacked as input channels plus depth and solar elevation channels. Reached F1 scores of 93.0% (herring), 87.3% (salmon) and 86.5% (bubbles), and the added depth and solar elevation channels improved accuracy. Source for our fixed dB scaling, context channels and surface detection approach. 
+- **Pala et al. [9]:** Their model first learns from unlabelled echogram patches, then is fine-tuned on the few labelled ones. Open-source code exists. Relevant because most of our year-long recordings are unlabelled. 
 
 
 ## 10. Individual Objectives
@@ -112,7 +112,7 @@ The Sv calibration table is partly complete (PI4): the transducer coefficients h
 **Objective 2: Boundary removal**
 - PI1 (basic, in progress): Flag and remove bad pings, gaps and Echoview "bad data" regions
 - PI2 (basic, not started): Mask the surface and near-field using the `.evl` lines where they exist
-- PI3 (expected, not started): Detect the surface automatically for periods without `.evl` lines, first testing Echofilter (Lowe et al., 2022) and then a detector based on the high-frequency Sv gradient (Slonimer, 2022)
+- PI3 (expected, not started): Detect the surface automatically for periods without `.evl` lines, first testing Echofilter [10] and then a detector based on the high-frequency Sv gradient [4]
 - PI4 (expected, not started): Validate automatic surface detection against the existing `.evl` lines
 - PI5 (advanced, not started): Mask the seafloor or obstructions if they appear in the echograms
 
@@ -125,9 +125,9 @@ The 626 bad-data regions identified during the label audit (Objective 1) give th
 - PI2 (basic, not started): Stack Sv at 67 kHz, Sv at 125 kHz and their difference as input channels, using one fixed dB range for all images
 - PI3 (expected, not started): Sample "no fish" background images from empty water
 - PI4 (expected, not started): Add data augmentation (crop shifts, time flips and small level offsets) to compensate for the small number of labelled regions
-- PI5 (advanced, not started): Add context channels for depth below the surface and solar elevation, which improved accuracy in previous work (Slonimer et al., 2023)
+- PI5 (advanced, not started): Add context channels for depth below the surface and solar elevation, which improved accuracy in previous work [8]
 
-The time, depth and polygon outline of each of the herring and salmon regions have been exported, together with their assignment to training, validation and test sets, so the regions can be cut out of the Sv data once it has been cleaned (Objectives 1 and 2). Images will be scaled with a single fixed dB range rather than per image, so that differences in backscatter strength between species are preserved (Slonimer, 2022). With only 136 salmon regions, augmentation (PI4) is likely to matter more than in typical image tasks.
+The time, depth and polygon outline of each of the herring and salmon regions have been exported, together with their assignment to training, validation and test sets, so the regions can be cut out of the Sv data once it has been cleaned (Objectives 1 and 2). Images will be scaled with a single fixed dB range rather than per image, so that differences in backscatter strength between species are preserved [4]. With only 136 salmon regions, augmentation (PI4) is likely to matter more than in typical image tasks.
 
 ### Amanda Tu
 
@@ -154,7 +154,7 @@ The time, depth and polygon outline of each of the herring and salmon regions ha
 - PI1 (basic): Calculate solar elevation from each ping's timestamp and mooring coordinates
 - PI2 (basic): Separate day and night data
 - PI3 (expected): Compute the dB difference between the two frequencies
-- PI4 (expected): Apply multi-frequency mask to separate fish from background (Rousseau et al., 2022)
+- PI4 (expected): Apply multi-frequency mask to separate fish from background [1]
 - PI5 (advanced): Use the fish mask to remove background pixels inside each labelled region before the images are made
 
 **ML: Random Forest**
@@ -163,7 +163,7 @@ The time, depth and polygon outline of each of the herring and salmon regions ha
 - PI1 (basic): Per-region features: mean Sv at 67 and 125 kHz, Sv (67-125 kHz), mean depth, height, length, area
 - PI2 (basic): Add context features: time of day, day of year, solar elevation, depth below surface
 - PI3 (expected): Add shape and texture features: Sv variability, skewness, kurtosis
-- PI4 (expected): Correlation/VIF screening to remove redundant features (following Rousseau et al., 2022)
+- PI4 (expected): Correlation/VIF screening to remove redundant features (following Rousseau et al. [1])
 - PI5 (advanced): Compare with Echoview's "analysis by region" school descriptor export if DFO has one
 
 **Objective 3: Explore CNN variants**
@@ -190,7 +190,7 @@ The time, depth and polygon outline of each of the herring and salmon regions ha
 - PI2 (basic): Class weighting or balanced sampling for imbalanced classes
 - PI3 (expected): Hyperparameter tuning with grouped cross-validation (never random folds)
 - PI4 (expected): Per-class precision, recall, F1 and confusion matrices
-- PI5 (advanced): Reproduce Rousseau's random-split setup next to the week-held-out split to measure how much a random split inflates scores
+- PI5 (advanced): Reproduce Rousseau's random-split setup [1] next to the week-held-out split to measure how much a random split inflates scores
 
 **Objective 3: Interpretation**
 - PI1 (basic): Rank feature importance
@@ -201,51 +201,50 @@ The time, depth and polygon outline of each of the herring and salmon regions ha
 
 ## 11. References
 
-**Breiman, L. (2001).** Random forests. *Machine Learning*, 45(1), 5–32. https://doi.org/10.1023/A:1010933404324
+[1] S. Rousseau, S. Gauthier, C. Neville, S. Johnson, and M. Trudel, "Acoustic classification of juvenile Pacific salmon (*Oncorhynchus* spp) and Pacific herring (*Clupea pallasii*) schools using random forests," *Front. Mar. Sci.*, vol. 9, Art. no. 857645, 2022, doi: 10.3389/fmars.2022.857645.
 
-> Introduces the random forest, a classifier that combines many decision trees trained on random subsets of the data and features. It is the baseline model we compare against the CNN.
-
-**Echopype Developers. (2024).** *Converting raw files*. Echopype documentation. https://echopype.readthedocs.io/en/stable/convert.html#supported-raw-file-types
-
-> Technical documentation listing the raw file types Echopype supports, including AZFP (.01A) files, which require the deployment's .XML file for conversion via the `sonar_model="AZFP"` setting.
-
-**He, K., Zhang, X., Ren, S., & Sun, J. (2016).** Deep residual learning for image recognition. In *Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)* (pp. 770–778). https://doi.org/10.1109/CVPR.2016.90
-
-> Introduces ResNet, a CNN architecture. ResNet-18, the smallest version, is the pretrained backbone we fine-tune for species classification.
-
-**Johannesson, K. A., & Mitson, R. B. (1983).** *Fisheries acoustics: A practical manual for aquatic biomass estimation* (FAO Fisheries Technical Paper No. 240). Food and Agriculture Organization of the United Nations. https://www.fao.org/4/x5818e/x5818e00.htm
+[2] K. A. Johannesson and R. B. Mitson, *Fisheries Acoustics: A Practical Manual for Aquatic Biomass Estimation*, FAO Fisheries Tech. Paper No. 240. Rome, Italy: Food and Agriculture Organization of the United Nations, 1983. [Online]. Available: https://www.fao.org/4/x5818e/x5818e00.htm
 
 > Foundational FAO manual on using echosounders to estimate fish biomass, including the early history of acoustic fish detection cited in our overview.
 
-**Lee, W.-J., Setiawan, L., Tuguinay, C., Mayorga, E., & Staneva, V. (2024).** Interoperable and scalable echosounder data processing with Echopype. *ICES Journal of Marine Science*, 81(10), 1941–1951. https://doi.org/10.1093/icesjms/fsae133
+[3] S. Rousseau, S. Gauthier, S. Johnson, C. Neville, and M. Trudel, "Juvenile salmon acoustic monitoring in the Discovery Islands, British Columbia," Fisheries and Oceans Canada, Can. Tech. Rep. Fish. Aquat. Sci. 3277, 2018. [Online]. Available: https://publications.gc.ca/collections/collection_2018/mpo-dfo/Fs97-6-3277-eng.pdf
+
+[4] A. Slonimer, "Automatic classification of fish and bubbles at pixel-level precision in multi-frequency acoustic echograms using U-Net convolutional neural networks," M.S. thesis, Univ. of Victoria, Victoria, BC, Canada, 2022. [Online]. Available: http://hdl.handle.net/1828/13850
+
+[5] W.-J. Lee, L. Setiawan, C. Tuguinay, E. Mayorga, and V. Staneva, "Interoperable and scalable echosounder data processing with Echopype," *ICES J. Mar. Sci.*, vol. 81, no. 10, pp. 1941–1951, 2024, doi: 10.1093/icesjms/fsae133.
 
 > Paper from the Echopype developers describing the open-source Python package that converts raw echosounder data (including AZFP) into a standard netCDF/Zarr format and computes Sv. Built on xarray with Dask, so it scales from a laptop to the cloud for large datasets like ours.
 
-**Lowe, S. C., McGarry, L. P., Douglas, J., Newport, J., Oore, S., Whidden, C., & Hasselman, D. J. (2022).** Echofilter: A deep learning segmentation model improves the automation, standardization, and timeliness for post-processing echosounder data in tidal energy streams. *Frontiers in Marine Science*, 9. https://doi.org/10.3389/fmars.2022.867857
+[6] Echopype Developers, "Converting raw files," Echopype documentation, 2024. [Online]. Available: https://echopype.readthedocs.io/en/stable/convert.html#supported-raw-file-types
+
+> Technical documentation listing the raw file types Echopype supports, including AZFP (.01A) files, which require the deployment's .XML file for conversion via the `sonar_model="AZFP"` setting.
+
+[7] T. P. Marques et al., "Instance segmentation-based identification of pelagic species in acoustic backscatter data," in *Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. Workshops (CVPRW)*, 2021. [Online]. Available: https://openaccess.thecvf.com/content/CVPR2021W/PBVS/papers/Marques_Instance_Segmentation-Based_Identification_of_Pelagic_Species_in_Acoustic_Backscatter_Data_CVPRW_2021_paper.pdf
+
+[8] A. L. Slonimer et al., "Classification of herring, salmon, and bubbles in multifrequency echograms using U-Net neural networks," *IEEE J. Ocean. Eng.*, vol. 48, no. 4, pp. 1236–1254, 2023, doi: 10.1109/JOE.2023.3272393.
+
+[9] A. Pala, A. Oleynik, K. Malde, and N. O. Handegard, "Self-supervised feature learning for acoustic data analysis," *Ecol. Inform.*, vol. 84, Art. no. 102878, 2024, doi: 10.1016/j.ecoinf.2024.102878.
+
+[10] S. C. Lowe et al., "Echofilter: A deep learning segmentation model improves the automation, standardization, and timeliness for post-processing echosounder data in tidal energy streams," *Front. Mar. Sci.*, vol. 9, 2022, doi: 10.3389/fmars.2022.867857.
 
 > Echofilter is an open-source deep-learning tool that draws boundary lines you'd otherwise draw by hand in Echoview for upward-looking moorings. It was trained on Simrad EK80 data, not AZFP, so signal and noise will differ and it might work less well without retraining.
 
-**Marques, T. P., Cote, M., Rezvanifar, A., Branzan Albu, A., Ersahin, K., Mudge, T., & Gauthier, S. (2021).** Instance segmentation-based identification of pelagic species in acoustic backscatter data. In *Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW)*. https://openaccess.thecvf.com/content/CVPR2021W/PBVS/papers/Marques_Instance_Segmentation-Based_Identification_of_Pelagic_Species_in_Acoustic_Backscatter_Data_CVPRW_2021_paper.pdf
+[11] L. Breiman, "Random forests," *Mach. Learn.*, vol. 45, no. 1, pp. 5–32, 2001, doi: 10.1023/A:1010933404324.
 
-**OSOceanAcoustics. (n.d.).** *Echoregions* [Computer software]. GitHub. https://github.com/OSOceanAcoustics/echoregions
+> Introduces the random forest, a classifier that combines many decision trees trained on random subsets of the data and features. It is the baseline model we compare against the CNN.
+
+[12] K. He, X. Zhang, S. Ren, and J. Sun, "Deep residual learning for image recognition," in *Proc. IEEE Conf. Comput. Vis. Pattern Recognit. (CVPR)*, 2016, pp. 770–778, doi: 10.1109/CVPR.2016.90.
+
+> Introduces ResNet, a CNN architecture. ResNet-18, the smallest version, is the pretrained backbone we fine-tune for species classification.
+
+[13] OSOceanAcoustics, *Echoregions*. GitHub. [Online]. Available: https://github.com/OSOceanAcoustics/echoregions
 
 > Open-source Python library that reads Echoview region (`.evr`) and line (`.evl`) files and converts them into masks aligned with Echopype Sv data. Links DFO's Echoview labels to our processed data.
 
-**Pala, A., Oleynik, A., Malde, K., & Handegard, N. O. (2024).** Self-supervised feature learning for acoustic data analysis. *Ecological Informatics*, 84, 102878. https://doi.org/10.1016/j.ecoinf.2024.102878
-
-**Rezvanifar, A., Marques, T. P., Cote, M., Branzan Albu, A., Slonimer, A., Tolhurst, T., Ersahin, K., Mudge, T., & Gauthier, S. (2019).** A deep learning-based framework for the detection of schools of herring in echograms. *NeurIPS 2019 Workshop on Tackling Climate Change with Machine Learning*. arXiv:1910.08215. https://arxiv.org/abs/1910.08215
+[14] A. Rezvanifar et al., "A deep learning-based framework for the detection of schools of herring in echograms," presented at the NeurIPS 2019 Workshop on Tackling Climate Change with Machine Learning, 2019, arXiv:1910.08215. [Online]. Available: https://arxiv.org/abs/1910.08215
 
 > A two-stage system on AZFP data from Discovery Passage, BC: a rule-based detector (median filtering, adaptive thresholding, morphological opening/closing, dropping small or flat blobs) proposes regions, then a CNN classifies each as herring or background. DenseNet201 performed best (F1 ~ 0.82).
 
-**Rousseau, S., Gauthier, S., Johnson, S., Neville, C., & Trudel, M. (2018).** *Juvenile salmon acoustic monitoring in the Discovery Islands, British Columbia* (Canadian Technical Report of Fisheries and Aquatic Sciences 3277). Fisheries and Oceans Canada. https://publications.gc.ca/collections/collection_2018/mpo-dfo/Fs97-6-3277-eng.pdf
-
-**Rousseau, S., Gauthier, S., Neville, C., Johnson, S., & Trudel, M. (2022).** Acoustic classification of juvenile Pacific salmon (*Oncorhynchus* spp) and Pacific herring (*Clupea pallasii*) schools using random forests. *Frontiers in Marine Science*, 9, 857645. https://doi.org/10.3389/fmars.2022.857645
-
-**Selvaraju, R. R., Cogswell, M., Das, A., Vedantam, R., Parikh, D., & Batra, D. (2017).** Grad-CAM: Visual explanations from deep networks via gradient-based localization. In *Proceedings of the IEEE International Conference on Computer Vision (ICCV)* (pp. 618–626). https://doi.org/10.1109/ICCV.2017.74
+[15] R. R. Selvaraju, M. Cogswell, A. Das, R. Vedantam, D. Parikh, and D. Batra, "Grad-CAM: Visual explanations from deep networks via gradient-based localization," in *Proc. IEEE Int. Conf. Comput. Vis. (ICCV)*, 2017, pp. 618–626, doi: 10.1109/ICCV.2017.74.
 
 > Introduces Grad-CAM, which produces a heatmap showing which parts of an image a CNN relied on for its prediction. We use it to check that our CNN focuses on the fish school rather than the surface or background.
-
-**Slonimer, A. (2022).** *Automatic classification of fish and bubbles at pixel-level precision in multi-frequency acoustic echograms using U-Net convolutional neural networks* [Master's thesis, University of Victoria]. http://hdl.handle.net/1828/13850
-
-**Slonimer, A. L., Dosso, S. E., Branzan Albu, A., Cote, M., Marques, T. P., Rezvanifar, A., & Ersahin, K. (2023).** Classification of herring, salmon, and bubbles in multifrequency echograms using U-Net neural networks. *IEEE Journal of Oceanic Engineering*, 48(4), 1236–1254. https://doi.org/10.1109/JOE.2023.3272393
-
