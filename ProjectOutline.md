@@ -1,4 +1,4 @@
-# Fish Classification in DFO Moored Echosounder Data
+# Where has my fish gone: Acoustic classification of Fish from Moored Echosounder Data
 
 **Team:** Olivia Whitelaw, Amanda Tu, Ali Stein-Gagnon, Carson Underhay
 
