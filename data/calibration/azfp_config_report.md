@@ -1,122 +1,41 @@
-# AZFP configuration by month
+# Calibration data
 
-Source: `/Users/oliviawhitelaw/Desktop/2025-03-01_MalaspinaStrait/2025-03-01_MalaspinaStrait/AZFP/55158/DATA`  
-Generated 2026-11-09 15:21 from 13 month folder(s).
+Instrument settings and calibration values for the Malaspina Strait AZFP deployment
+(serial 55158, 67 and 125 kHz, March 2025 – March 2026).
 
-## Changes between months
+## Files
 
-- **dpl_config_line** (all) — 202503: Config for unit '55158' deployed 2025-03-01 15:20:11, 202504: Config for unit '55158' deployed 2025-03-01 15:20:11, 202505: Config for unit '55158' deployed 2025-03-01 15:20:11, 202506: Config for unit '55158' deployed 2025-03-01 15:20:11, 202507: Config for unit '55158' deployed 2025-03-01 15:20:11, 202508: Config for unit '55158' deployed 2025-03-01 15:20:11, 202509: Config for unit '55158' deployed 2025-03-01 15:20:11, 202510: Config for unit '55158' deployed 2025-03-01 15:20:11, 202511: Config for unit '55158' deployed 2025-03-01 15:20:11, 202512: Config for unit '55158' deployed 2025-03-01 15:20:11, 202601: Config for unit '55158' deployed 2025-03-01 15:20:11, 202602: Config for unit '55158' deployed 2025-03-01 15:20:11, 202603: Config for unit '55158' deployed 2025-03-01 15:20:11, 202603: Config for unit '55158' deployed 2026-03-01 18:36:15
+**`azfp_calibration.csv`**: the values used to convert raw counts to Sv, per month and frequency.
+Made by hand from each month's `.XML` file, cross-checked against DFO's Echoview `.ECS` files.
 
-## XML vs DPL disagreements
+| Column | Source | Cross-checked against |
+|---|---|---|
+| `EL_dB` | `.XML` | `.ECS` `AzfpEchoLevelMax` |
+| `DS` | `.XML` | `.ECS` `AzfpDetectionSlope` |
+| `TVR` | `.XML` | `.ECS` `AzfpTransmitVoltageResponse` |
+| `VTX` | `.XML` | `.ECS` `AzfpTransmitVoltage` |
+| `BP_dB` | `.XML` | `.ECS` `TwoWayBeamAngle` (10·log₁₀ BP) |
+| `PL_us` | `.XML` | `.ECS` `PulseDuration` |
+| `SS_m_s` | `.ECS` | RBR temperature + pressure |
+| `AC_dB_m` | `.ECS` `AbsorptionCoefficient` | — |
 
-- 202503 (25030115.XML vs 25030115.DPL): phase 1 average burst pings: XML 0 vs DPL 1
-- 202504 (25030115.XML vs 25030115.DPL): phase 1 average burst pings: XML 0 vs DPL 1
-- 202505 (25030115.XML vs 25030115.DPL): phase 1 average burst pings: XML 0 vs DPL 1
-- 202506 (25030115.XML vs 25030115.DPL): phase 1 average burst pings: XML 0 vs DPL 1
-- 202507 (25030115.XML vs 25030115.DPL): phase 1 average burst pings: XML 0 vs DPL 1
-- 202508 (25030115.XML vs 25030115.DPL): phase 1 average burst pings: XML 0 vs DPL 1
-- 202509 (25030115.XML vs 25030115.DPL): phase 1 average burst pings: XML 0 vs DPL 1
-- 202510 (25030115.XML vs 25030115.DPL): phase 1 average burst pings: XML 0 vs DPL 1
-- 202511 (25030115.XML vs 25030115.DPL): phase 1 average burst pings: XML 0 vs DPL 1
-- 202512 (25030115.XML vs 25030115.DPL): phase 1 average burst pings: XML 0 vs DPL 1
-- 202601 (25030115.XML vs 25030115.DPL): phase 1 average burst pings: XML 0 vs DPL 1
-- 202602 (25030115.XML vs 25030115.DPL): phase 1 average burst pings: XML 0 vs DPL 1
-- 202603 (25030115.XML vs 25030115.DPL): phase 1 average burst pings: XML 0 vs DPL 1
-- 202603 (26030118.XML vs 26030118.DPL): phase 1 average burst pings: XML 0 vs DPL 1
+The instrument values were identical in the `.XML` and `.ECS` files for all 12 months.
 
-## Missing or unreadable files
+**`azfp_sampling.csv`**: acquisition settings (ping interval, dig rate, range bins, etc.), read from each
+month's `.XML`. Distance columns (`sample_spacing_m`, `bin_size_m`, `max_range_m`, `pulse_res_m`,
+`lockout_m`) were calculated with the `.XML` header sound speed (1450.5 m/s), so they are about 2% smaller
+than with the `.ECS` sound speed. For reference only; not used by the code.
 
-None.
+**`azfp_deployment.csv`**: deployment details (serial number, firmware, start time, file counts), read from
+each month's `.XML` and `.DPL`. `instrument_depth_m` is the header value (110 m); the cross-check showed the
+instrument is at about 117 m. For reference only; not used by the code.
 
-## Deployment
+**`azfp_config_report.md`**: summary of the `.XML`/`.DPL` comparison across months.
 
-| month | file | serial_number | firmware | frequencies_khz | acquisition_start | num_phases | duration_days | sound_speed_header_m_s | instrument_depth_m | water_depth_m | pressure_sensor | dpl_config_line | n_01a_files | first_01a | last_01a | total_01a_gb |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 202503 | 25030115 | 55158 | 3.36 | 67;125 | 2025-03-01 15:08:31 | 1 | 365.0 | 1450.5 | 110 | 110 | no | Config for unit '55158' deployed 2025-03-01 15:20:11 | 729 | 25030115.01A | 25033123.01A | 2.61 |
-| 202504 | 25030115 | 55158 | 3.36 | 67;125 | 2025-03-01 15:08:31 | 1 | 365.0 | 1450.5 | 110 | 110 | no | Config for unit '55158' deployed 2025-03-01 15:20:11 | 720 | 25040100.01A | 25043023.01A | 2.58 |
-| 202505 | 25030115 | 55158 | 3.36 | 67;125 | 2025-03-01 15:08:31 | 1 | 365.0 | 1450.5 | 110 | 110 | no | Config for unit '55158' deployed 2025-03-01 15:20:11 | 744 | 25050100.01A | 25053123.01A | 2.67 |
-| 202506 | 25030115 | 55158 | 3.36 | 67;125 | 2025-03-01 15:08:31 | 1 | 365.0 | 1450.5 | 110 | 110 | no | Config for unit '55158' deployed 2025-03-01 15:20:11 | 720 | 25060100.01A | 25063023.01A | 2.58 |
-| 202507 | 25030115 | 55158 | 3.36 | 67;125 | 2025-03-01 15:08:31 | 1 | 365.0 | 1450.5 | 110 | 110 | no | Config for unit '55158' deployed 2025-03-01 15:20:11 | 744 | 25070100.01A | 25073123.01A | 2.67 |
-| 202508 | 25030115 | 55158 | 3.36 | 67;125 | 2025-03-01 15:08:31 | 1 | 365.0 | 1450.5 | 110 | 110 | no | Config for unit '55158' deployed 2025-03-01 15:20:11 | 744 | 25080100.01A | 25083123.01A | 2.67 |
-| 202509 | 25030115 | 55158 | 3.36 | 67;125 | 2025-03-01 15:08:31 | 1 | 365.0 | 1450.5 | 110 | 110 | no | Config for unit '55158' deployed 2025-03-01 15:20:11 | 720 | 25090100.01A | 25093023.01A | 2.58 |
-| 202510 | 25030115 | 55158 | 3.36 | 67;125 | 2025-03-01 15:08:31 | 1 | 365.0 | 1450.5 | 110 | 110 | no | Config for unit '55158' deployed 2025-03-01 15:20:11 | 744 | 25100100.01A | 25103123.01A | 2.67 |
-| 202511 | 25030115 | 55158 | 3.36 | 67;125 | 2025-03-01 15:08:31 | 1 | 365.0 | 1450.5 | 110 | 110 | no | Config for unit '55158' deployed 2025-03-01 15:20:11 | 720 | 25110100.01A | 25113023.01A | 2.58 |
-| 202512 | 25030115 | 55158 | 3.36 | 67;125 | 2025-03-01 15:08:31 | 1 | 365.0 | 1450.5 | 110 | 110 | no | Config for unit '55158' deployed 2025-03-01 15:20:11 | 744 | 25120100.01A | 25123123.01A | 2.67 |
-| 202601 | 25030115 | 55158 | 3.36 | 67;125 | 2025-03-01 15:08:31 | 1 | 365.0 | 1450.5 | 110 | 110 | no | Config for unit '55158' deployed 2025-03-01 15:20:11 | 744 | 26010100.01A | 26013123.01A | 2.67 |
-| 202602 | 25030115 | 55158 | 3.36 | 67;125 | 2025-03-01 15:08:31 | 1 | 365.0 | 1450.5 | 110 | 110 | no | Config for unit '55158' deployed 2025-03-01 15:20:11 | 672 | 26020100.01A | 26022823.01A | 2.41 |
-| 202603 | 25030115 | 55158 | 3.36 | 67;125 | 2025-03-01 15:08:31 | 1 | 365.0 | 1450.5 | 110 | 110 | no | Config for unit '55158' deployed 2025-03-01 15:20:11 | 0 |  |  | 0.0 |
-| 202603 | 26030118 | 55158 | 3.36 | 67;125 | 2025-03-01 15:08:31 | 1 | 365.0 | 1450.5 | 110 | 110 | no | Config for unit '55158' deployed 2026-03-01 18:36:15 | 0 |  |  | 0.0 |
+## Note on March 2026
 
-## Calibration
-
-| month | file | frequency_khz | EL | DS | TVR | VTX | BP | pulse_len_us | min_pulse_len_us |
-|---|---|---|---|---|---|---|---|---|---|
-| 202503 | 25030115 | 67 | 146.2 | 0.023 | 166.5 | 121.6 | 0.02409 | 500 | 500 |
-| 202503 | 25030115 | 125 | 138.3 | 0.0226 | 163.6 | 243.2 | 0.01071 | 300 | 190 |
-| 202504 | 25030115 | 67 | 146.2 | 0.023 | 166.5 | 121.6 | 0.02409 | 500 | 500 |
-| 202504 | 25030115 | 125 | 138.3 | 0.0226 | 163.6 | 243.2 | 0.01071 | 300 | 190 |
-| 202505 | 25030115 | 67 | 146.2 | 0.023 | 166.5 | 121.6 | 0.02409 | 500 | 500 |
-| 202505 | 25030115 | 125 | 138.3 | 0.0226 | 163.6 | 243.2 | 0.01071 | 300 | 190 |
-| 202506 | 25030115 | 67 | 146.2 | 0.023 | 166.5 | 121.6 | 0.02409 | 500 | 500 |
-| 202506 | 25030115 | 125 | 138.3 | 0.0226 | 163.6 | 243.2 | 0.01071 | 300 | 190 |
-| 202507 | 25030115 | 67 | 146.2 | 0.023 | 166.5 | 121.6 | 0.02409 | 500 | 500 |
-| 202507 | 25030115 | 125 | 138.3 | 0.0226 | 163.6 | 243.2 | 0.01071 | 300 | 190 |
-| 202508 | 25030115 | 67 | 146.2 | 0.023 | 166.5 | 121.6 | 0.02409 | 500 | 500 |
-| 202508 | 25030115 | 125 | 138.3 | 0.0226 | 163.6 | 243.2 | 0.01071 | 300 | 190 |
-| 202509 | 25030115 | 67 | 146.2 | 0.023 | 166.5 | 121.6 | 0.02409 | 500 | 500 |
-| 202509 | 25030115 | 125 | 138.3 | 0.0226 | 163.6 | 243.2 | 0.01071 | 300 | 190 |
-| 202510 | 25030115 | 67 | 146.2 | 0.023 | 166.5 | 121.6 | 0.02409 | 500 | 500 |
-| 202510 | 25030115 | 125 | 138.3 | 0.0226 | 163.6 | 243.2 | 0.01071 | 300 | 190 |
-| 202511 | 25030115 | 67 | 146.2 | 0.023 | 166.5 | 121.6 | 0.02409 | 500 | 500 |
-| 202511 | 25030115 | 125 | 138.3 | 0.0226 | 163.6 | 243.2 | 0.01071 | 300 | 190 |
-| 202512 | 25030115 | 67 | 146.2 | 0.023 | 166.5 | 121.6 | 0.02409 | 500 | 500 |
-| 202512 | 25030115 | 125 | 138.3 | 0.0226 | 163.6 | 243.2 | 0.01071 | 300 | 190 |
-| 202601 | 25030115 | 67 | 146.2 | 0.023 | 166.5 | 121.6 | 0.02409 | 500 | 500 |
-| 202601 | 25030115 | 125 | 138.3 | 0.0226 | 163.6 | 243.2 | 0.01071 | 300 | 190 |
-| 202602 | 25030115 | 67 | 146.2 | 0.023 | 166.5 | 121.6 | 0.02409 | 500 | 500 |
-| 202602 | 25030115 | 125 | 138.3 | 0.0226 | 163.6 | 243.2 | 0.01071 | 300 | 190 |
-| 202603 | 25030115 | 67 | 146.2 | 0.023 | 166.5 | 121.6 | 0.02409 | 500 | 500 |
-| 202603 | 25030115 | 125 | 138.3 | 0.0226 | 163.6 | 243.2 | 0.01071 | 300 | 190 |
-| 202603 | 26030118 | 67 | 146.2 | 0.023 | 166.5 | 121.6 | 0.02409 | 500 | 500 |
-| 202603 | 26030118 | 125 | 138.3 | 0.0226 | 163.6 | 243.2 | 0.01071 | 300 | 190 |
-
-## Sampling
-
-| month | file | phase | frequency_khz | burst_interval_s | pings_per_burst | ping_period_s | average_burst_pings | seconds_per_record | records_per_hour | dig_rate_hz | range_samples | range_averaging_samples | sample_spacing_m | bin_size_m | n_bins | max_range_m | pulse_res_m | lockout_index | lockout_m | gain | storage_format |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 202503 | 25030115 | 1 | 67 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.363 | 55 | 1.0 | 1 | 1 |
-| 202503 | 25030115 | 1 | 125 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.218 | 55 | 1.0 | 1 | 1 |
-| 202504 | 25030115 | 1 | 67 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.363 | 55 | 1.0 | 1 | 1 |
-| 202504 | 25030115 | 1 | 125 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.218 | 55 | 1.0 | 1 | 1 |
-| 202505 | 25030115 | 1 | 67 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.363 | 55 | 1.0 | 1 | 1 |
-| 202505 | 25030115 | 1 | 125 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.218 | 55 | 1.0 | 1 | 1 |
-| 202506 | 25030115 | 1 | 67 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.363 | 55 | 1.0 | 1 | 1 |
-| 202506 | 25030115 | 1 | 125 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.218 | 55 | 1.0 | 1 | 1 |
-| 202507 | 25030115 | 1 | 67 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.363 | 55 | 1.0 | 1 | 1 |
-| 202507 | 25030115 | 1 | 125 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.218 | 55 | 1.0 | 1 | 1 |
-| 202508 | 25030115 | 1 | 67 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.363 | 55 | 1.0 | 1 | 1 |
-| 202508 | 25030115 | 1 | 125 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.218 | 55 | 1.0 | 1 | 1 |
-| 202509 | 25030115 | 1 | 67 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.363 | 55 | 1.0 | 1 | 1 |
-| 202509 | 25030115 | 1 | 125 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.218 | 55 | 1.0 | 1 | 1 |
-| 202510 | 25030115 | 1 | 67 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.363 | 55 | 1.0 | 1 | 1 |
-| 202510 | 25030115 | 1 | 125 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.218 | 55 | 1.0 | 1 | 1 |
-| 202511 | 25030115 | 1 | 67 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.363 | 55 | 1.0 | 1 | 1 |
-| 202511 | 25030115 | 1 | 125 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.218 | 55 | 1.0 | 1 | 1 |
-| 202512 | 25030115 | 1 | 67 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.363 | 55 | 1.0 | 1 | 1 |
-| 202512 | 25030115 | 1 | 125 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.218 | 55 | 1.0 | 1 | 1 |
-| 202601 | 25030115 | 1 | 67 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.363 | 55 | 1.0 | 1 | 1 |
-| 202601 | 25030115 | 1 | 125 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.218 | 55 | 1.0 | 1 | 1 |
-| 202602 | 25030115 | 1 | 67 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.363 | 55 | 1.0 | 1 | 1 |
-| 202602 | 25030115 | 1 | 125 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.218 | 55 | 1.0 | 1 | 1 |
-| 202603 | 25030115 | 1 | 67 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.363 | 55 | 1.0 | 1 | 1 |
-| 202603 | 25030115 | 1 | 125 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.218 | 55 | 1.0 | 1 | 1 |
-| 202603 | 26030118 | 1 | 67 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.363 | 55 | 1.0 | 1 | 1 |
-| 202603 | 26030118 | 1 | 125 | 12 | 1 | 1 | 0 | 12.0 | 300.0 | 40000 | 7153 | 6 | 0.01813 | 0.1088 | 1192 | 129.69 | 0.218 | 55 | 1.0 | 1 | 1 |
-
-## Notes
-
-- Frequencies are labelled Hz in the XML/DPL but are kHz.
-- `sample_spacing_m`, `bin_size_m`, `max_range_m` and `lockout_m` use the header sound speed; Echopype recomputes sound speed from temperature, salinity and pressure, so its depth axis can differ by a few percent.
-- `lockout_m` assumes LockOutIndex counts raw samples.
-- `acquisition_start` is the instrument clock; the file doesn't say which time zone.
-
+*Mar 2026: end of deployment (recording stopped 1 Mar 2026 15:08; instrument recovered and reconfigured at
+18:36 as 26030118, with identical settings). No .01A files were recorded in March. ECS values break the
+seasonal trend: sound speed is 3.2 m/s above February, absorption is above the November peak, and the
+commented SourceCal sound speed (1485.68) is copied from February. MSP of 5.41 dbar indicates the pressure
+logger was at the surface. These values are not used, and no herring or salmon regions fall in this period.
