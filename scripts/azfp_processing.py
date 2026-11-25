@@ -338,9 +338,13 @@ def load_week_regions(week):
     regions = regions.rename(columns={"range_min_m": "depth_min_m", "range_max_m": "depth_max_m",
                                       "depth_top": "depth_min_m", "depth_bottom": "depth_max_m"})
 
-    # Region times are the instrument clock as written in the .EVR, same as ping_time
-    regions["start"] = pd.to_datetime(regions["start_utc"]).dt.tz_localize(None)
-    regions["end"] = pd.to_datetime(regions["end_utc"]).dt.tz_localize(None)
+    
+
+    # region times are the instrument clock as written in the .EVR, the same clock as ping_time
+    # time zone is unconfirmed (probably local standard time, UTC-8), so no time zone is attached
+    regions["start"] = pd.to_datetime(regions["start_time"], format="ISO8601")
+    regions["end"] = pd.to_datetime(regions["end_time"], format="ISO8601")
+
     return regions
  
  

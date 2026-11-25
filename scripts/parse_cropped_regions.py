@@ -42,7 +42,10 @@ def get_epoch(d, t):
     return day_cache[d] + hours + mins + secs + frac
 
 def to_iso(seconds):
-    return datetime.fromtimestamp(seconds, tz=timezone.utc).isoformat()
+    # NOTE ON TIME: .EVR times are the AZFP instrument clock, the same clock as the Sv ping_time
+    # We don't know what the time zone is for sure, most likely local standard time (UTC-8), not UTC
+    # UTC is only used here as a neutral reference for the arithmetic; no time zone is written out
+    return datetime.fromtimestamp(seconds, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")
 
 def read_text_file(filepath):
     # Try a few encodings because echoview files can be weird
@@ -301,8 +304,8 @@ if __name__ == "__main__":
                 "label": lbl,
                 "region_type": reg["region_type"],
                 "n_points": reg["n_points"],
-                "start_utc": to_iso(s),
-                "end_utc": to_iso(e),
+                "start_time": to_iso(s), # edited
+                "end_time": to_iso(e), # edited
                 "depth_top": float(reg["poly"][:, 1].min()),
                 "depth_bottom": float(reg["poly"][:, 1].max()),
                 "in_window": is_in_window
