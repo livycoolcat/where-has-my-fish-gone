@@ -46,7 +46,7 @@ Run everything from the repo folder with `pipeline.py`. Paths come from `config.
 | Step | Command | What it does |
 |---|---|---|
 | Check | `python pipeline.py check` | Shows each path and whether it exists |
-| 0 | `python pipeline.py sort` | Sorts raw `.01A` files into `Weeks/week1 ... week54` (Sat-Fri). Add `--dry-run` to preview, `--copy` to copy instead of move |
+| 0 | `python pipeline.py sort` | Sorts raw `.01A` files into `Weeks/week1 ... week54` (Sat-Fri). Add `--dry-run` to preview, `--copy` to copy instead of move. Once you run this `.01A` files will be moved out of DATA |
 | Labels | `python pipeline.py count` | Counts DFO regions per species and week |
 | Labels | `python pipeline.py regions` | Region CSVs (times, depths, labels) and train/val/test splits, for every split in `config.yaml`. Add `--split split_8020` for just one |
 | 1 | `python pipeline.py sv --weeks 1 5` | Weekly Sv with calibration and depth, plus check plots, for the weeks you list |
