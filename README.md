@@ -24,7 +24,7 @@ Classifying herring and salmon in DFO moored echosounder (AZFP) data from the Ma
    ```
    The `55158` folder should contain `DATA/` (raw `.01A` files by month) and `Echoview/Exports/Regions/` (`WeekN.EVR` files).
 
-   **Data laid out differently (e.g. OneDrive, or Windows)?** Copy `config.local.example.yaml` to `config.local.yaml` and put your own full paths in it. Only that file changes, and it is never committed:
+   **One Drive set up** Copy `config.local.example.yaml` to `config.local.yaml` and put your own full paths in it. Only that file changes, and it is never committed:
    ```yaml
    raw_data:    "C:/Users/yourname/OneDrive - University of Victoria/Malaspina/DATA/RAW"
    weeks:       "C:/Users/yourname/OneDrive - University of Victoria/Malaspina/DATA/RAW_WEEKLY"
