@@ -1,0 +1,27 @@
+# All paths are relative to the repo folder.
+# The DFO data goes in data/raw/55158 (ignored by git) - see README "Setup".
+
+# DFO data (not in the repo)
+raw_data:     data/raw/55158/DATA                       # .01A files, one folder per month
+weeks:        data/raw/55158/Weeks                      # .01A files sorted into week1 ... week54
+regions_evr:  data/raw/55158/Echoview/Exports/Regions   # DFO's WeekN.EVR region files
+
+# In the repo
+evr_windows:  data/region_labels/evr_windows.csv        # start/end of each WeekN.EVR
+region_labels: data/region_labels                       # region counts per species
+calibration:  data/calibration/azfp_calibration.csv     # EL, DS, TVR, VTX, BP, sound speed, absorption
+processed:    data/processed                            # region CSVs per split
+
+# Train/val/test splits: folder name -> share of weeks for validation AND for test (each)
+#   0.15 -> 70% train / 15% val / 15% test
+#   0.20 -> 60% train / 20% val / 20% test
+splits:
+  split_7030: 0.15
+  split_8020: 0.20
+
+# Which split the later steps use (change here, or use --split on the command line)
+split: split_7030
+
+# Outputs (ignored by git)
+sv_output:    data/processed/Sv                         # week1_Sv.zarr, ...
+sv_plots:     data/processed/Sv/plots
