@@ -63,6 +63,7 @@ def sort(args):
 
 def count(args):
     # Count DFO's labelled regions per species and week
+    # count_species_evr.py counts only "analysis" regions by default (add --all-types for every region)
     run_script("count_species_evr.py", path("regions_evr"), "--out", path("region_labels"))
 
 

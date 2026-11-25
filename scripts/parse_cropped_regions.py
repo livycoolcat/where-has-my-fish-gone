@@ -10,13 +10,17 @@ import sys
 import calendar
 import re
 from pathlib import Path
+from paths import path, setting
 from datetime import datetime, timezone
 
 import numpy as np
 import pandas as pd
 
-DEFAULT_REGIONS_DIR = "2025-03-01_MalaspinaStrait/2025-03-01_MalaspinaStrait/AZFP/55158/Echoview/Exports/Regions"
-DEFAULT_WINDOWS_CSV = "data/region_labels/evr_windows.csv"
+# Paths and the default split come from config.yaml
+DEFAULT_REGIONS_DIR = path("regions_evr")
+DEFAULT_WINDOWS_CSV = path("evr_windows")
+DEFAULT_SPLIT = setting("split")                      # e.g. split_7030
+DEFAULT_SPLIT_FRAC = setting("splits")[DEFAULT_SPLIT] # e.g. 0.15
 
 # types from echoview
 REG_TYPES = {"0": "bad (no data)", "1": "analysis", "2": "marker", "3": "fishtracks", "4": "bad (empty water)"}
@@ -178,10 +182,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Parse weekly .EVR files into CNN-ready label files.")
     parser.add_argument("path", type=Path, nargs="?", default=Path(DEFAULT_REGIONS_DIR), help="Path to EVR folders")
     parser.add_argument("--windows", type=Path, default=Path(DEFAULT_WINDOWS_CSV), help="CSV with file,start,end")
-    parser.add_argument("--out", type=Path, default=Path("data/processed"))
+    parser.add_argument("--out", type=Path, default=path("processed") / DEFAULT_SPLIT)
     parser.add_argument("--classes", nargs="+", default=["Herring", "Salmon"])
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--split-frac", type=float, default=0.15)
+    parser.add_argument("--split-frac", type=float, default=DEFAULT_SPLIT_FRAC)
     parser.add_argument("--keep-outside-window", action="store_true")
     
     args = parser.parse_args()

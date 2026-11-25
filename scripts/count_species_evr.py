@@ -30,6 +30,7 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass, asdict
 from datetime import date
 from pathlib import Path
+from paths import path
 
 WEEK1_START = date(2025, 3, 1)  # Saturday the deployment started (Week 1)
 WEEK_RE = re.compile(r"week\s*0*(\d+)", re.IGNORECASE)
@@ -168,14 +169,16 @@ def label_for(r: Region) -> str:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Count regions per species in Echoview .evr files.")
-    ap.add_argument("path", type=Path, nargs="?", default=Path("data"),
-                    help="the folder with the .evr files (default: data/)")
+    ap.add_argument("path", type=Path, nargs="?", default=path("regions_evr")),
     
-    # optional on/off switch: add --analysis-only when running the script to count
-    # only region type 1 (analysis) and skip bad data, markers and fish tracks
-    ap.add_argument("--analysis-only", action="store_true", help="count only 'analysis' regions")
-    ap.add_argument("--out", type=Path, default=Path("data"))    
+    # default: count only 'analysis' regions (real data), as in the progress report
+    # add --all-types to also count bad-data regions, markers and fish tracks
+    ap.add_argument("--all-types", dest="analysis_only", action="store_false",
+                    help="count every region type, not only 'analysis'")
+    
+    ap.add_argument("--out", type=Path, default=path("region_labels"))    
     args = ap.parse_args()
+        
 
     # only pull .evr/ .EVR files 
     if not args.path.is_dir():

@@ -8,6 +8,7 @@ import pandas as pd
 import xarray as xr
 import numpy as np
 import os
+from paths import path, setting
 
 
 """
@@ -33,15 +34,17 @@ TODO: Masking for fishes, saving to netcdf files
 # MANUAL CONFIGURATION VARIABLES
 # --------------------------------------------------
 
-# folder made by sort_raw_by_week.py, containing week1, week2, ... week54
-# input your own path to the week folder
-# Ex. "Users/oliviawhitelaw/Documents/CSC 475/where-has-my-fish-gone/2025-03-01_MalaspinaStrait/2025-03-01_MalaspinaStrait/AZFP/55158/Weeks"
-WEEKS_DIR = r"/Users/oliviawhitelaw/Documents/CSC 475/where-has-my-fish-gone/2025-03-01_MalaspinaStrait/2025-03-01_MalaspinaStrait/AZFP/55158/Weeks"
+WEEKS_DIR = str(path("weeks"))
+OUTPUT_DIR = str(path("sv_output"))
+PLOTS_DIR = str(path("sv_plots"))
+# DFO's labelled regions (made by parse_cropped_regions.py) drawn on the echograms
+REGIONS_PATH = str(path("processed") / setting("split") / "regions_manifest.csv")
+# calibration table: sound speed (SS_m_s) and absorption (AC_dB_m) per month and frequency
+CALIBRATION_PATH = str(path("calibration"))
 
-# one Sv file saved per week: week1_Sv.zarr, week2_Sv.zarr, ..
-OUTPUT_DIR = r"data/processed/Sv"
 
-# which weeks to run: = None means run all the weeks and Ex. [1] to test the first week
+# which weeks to run when this script is run directly: None = all weeks, Ex. [1] = first week only
+# (python pipeline.py sv --weeks ... / --all sets this for you)
 WEEKS_TO_RUN = [1]
 
 # skip weeks that have a saved Sv file 
@@ -54,13 +57,6 @@ MAKE_PLOTS = True
 # also open the plots in a window False = only save them
 SHOW_PLOTS = False
 
-PLOTS_DIR = r"data/processed/Sv/plots"
- 
-# DFO's labelled regions (made by parse_cropped_regions.py) drawn on the echograms
-REGIONS_PATH = r"data/processed/split_7030/regions_manifest.csv"
-
-# calibration table: sound speed (SS_m_s) and absorption (AC_dB_m) per month and frequency
-CALIBRATION_PATH = r"data/calibration/azfp_calibration.csv"
 
 # The month is not set by hand: each week uses the calibration of the month with the most
 # days of data in that week folder (read from the .01A file names, YYMMDDHH.01A).

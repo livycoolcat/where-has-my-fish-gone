@@ -14,11 +14,11 @@ Run once with DRY_RUN = True to check the output, then set DRY_RUN = False.
 from datetime import datetime
 from pathlib import Path
 import shutil
+from paths import path
 
 # ----------------------------- EDIT ---------------------------------
-DATA = Path("/Users/oliviawhitelaw/Documents/CSC 475/where-has-my-fish-gone/2025-03-01_MalaspinaStrait/"
-            "2025-03-01_MalaspinaStrait/AZFP/55158/DATA")
-OUT = DATA.parent / "Weeks"          # creates .../55158/Weeks/week1, week2, ...
+DATA = path("raw_data")              # raw .01A files by month (set in config.yaml)
+OUT = path("weeks")                  # creates week1, week2, ... (set in config.yaml)
 WEEK1_START = datetime(2025, 3, 1)   # Saturday the deployment started
 FOLDER_NAME = "week{}"               # use "week{:02d}" for week01, week02 (sorts nicer)
 MODE = "move"                        # "move" or "copy"
