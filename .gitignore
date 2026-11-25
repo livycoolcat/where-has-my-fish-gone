@@ -6,3 +6,4 @@ __pycache__/
 data/processed/Sv/
 data/raw/
 data/raw/
+config.local.yaml

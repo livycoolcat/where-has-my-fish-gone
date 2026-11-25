@@ -1,0 +1,8 @@
+# Copy this file to config.local.yaml (not committed) and change only the paths
+# that are different on your computer. Anything not listed here comes from config.yaml.
+# Use full paths, in quotes. Forward slashes work on Windows too.
+
+# Example: data on OneDrive in separate folders
+raw_data:    "C:/Users/yourname/OneDrive - University of Victoria/Malaspina/DATA/RAW"
+weeks:       "C:/Users/yourname/OneDrive - University of Victoria/Malaspina/DATA/RAW_WEEKLY"
+regions_evr: "C:/Users/yourname/OneDrive - University of Victoria/Malaspina/DATA/Regions"

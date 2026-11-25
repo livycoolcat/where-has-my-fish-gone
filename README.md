@@ -24,6 +24,13 @@ Classifying herring and salmon in DFO moored echosounder (AZFP) data from the Ma
    ```
    The `55158` folder should contain `DATA/` (raw `.01A` files by month) and `Echoview/Exports/Regions/` (`WeekN.EVR` files).
 
+   **Data laid out differently (e.g. OneDrive, or Windows)?** Copy `config.local.example.yaml` to `config.local.yaml` and put your own full paths in it. Only that file changes, and it is never committed:
+   ```yaml
+   raw_data:    "C:/Users/yourname/OneDrive - University of Victoria/Malaspina/DATA/RAW"
+   weeks:       "C:/Users/yourname/OneDrive - University of Victoria/Malaspina/DATA/RAW_WEEKLY"
+   regions_evr: "C:/Users/yourname/OneDrive - University of Victoria/Malaspina/DATA/Regions"
+   ```
+
 4. **Check the paths**
    ```bash
    python pipeline.py check
@@ -55,6 +62,7 @@ Outputs: region CSVs in `data/processed/split_*/`, Sv in `data/processed/Sv/week
 
 ```
 config.yaml          all paths, relative to the repo
+config.local.yaml    your own paths, if different (not committed)
 pipeline.py          one command for each step
 scripts/             the code for each step (paths.py reads config.yaml)
 data/raw/            DFO data (not committed)
