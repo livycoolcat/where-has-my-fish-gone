@@ -536,6 +536,8 @@ def main():
             continue
  
         # Save this week's Sv
+        # store Sv at float32 (about 7 significant digits, plenty for dB): halves the file size
+        ds_Sv["Sv"] = ds_Sv["Sv"].astype("float32")
         ds_Sv.to_zarr(out_path, mode="w")
         print(f"Saved: {out_path}")
  
