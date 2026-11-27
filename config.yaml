@@ -5,6 +5,7 @@
 raw_data:     data/raw/55158/DATA                       # .01A files, one folder per month
 weeks:        data/raw/55158/Weeks                      # .01A files sorted into week1 ... week54
 regions_evr:  data/raw/55158/Echoview/Exports/Regions   # DFO's WeekN.EVR region files
+dfo_cell_exports: data/raw/55158/Sv_exports             # dfo's WeekN_KrillSv.csv cell exports (daytime, surface and near transducer lines)
 
 # In the repo
 evr_windows:  data/region_labels/evr_windows.csv        # start/end of each WeekN.EVR
@@ -27,6 +28,17 @@ bad_data:     data/processed/bad_data                   # bad_data_list.csv, mas
 # End of deployment: the signal is lost on 1 Mar 2026 (~17:03, surface echo fades out); everything
 # from here on is bad data. DFO's own bad region in Week53.EVR starts at this time.
 bad_data_after: "2026-03-01 16:59:29"
+
+# Daytime (pipeline.py solar)
+daytime:      data/processed/daytime                    # sun_times.csv
+latitude:     49.5348                                   # mooring position
+longitude:    -124.0110
+# the instrument clock has no time zone; it is utc plus this many hours (checked by pipeline.py solar)
+# confirmed utc minus 8 all year with no daylight saving: dfo's daytime window is 1 h after sunrise to
+# 1 h before sunset in local time, and it shifts by 1 h in this clock exactly on 9 mar and 2 nov 2025
+clock_utc_offset: -8
+# daytime means the sun is more than this many degrees above the horizon
+daytime_min_elevation: 0
 
 # Outputs (ignored by git)
 sv_output:    data/processed/Sv                         # week1_Sv.zarr, week1_mask.zarr, ...

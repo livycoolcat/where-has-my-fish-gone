@@ -10,6 +10,7 @@ Paths come from config.yaml. See README "How to run".
     python pipeline.py sv --weeks 1 5         # Sv for some weeks (with check plots)
     python pipeline.py sv --all --no-plots    # Sv for every week
     python pipeline.py clean --all            # cleaning step 1: bad-data masks for every week
+    python pipeline.py solar                  # sunrise and sunset, clock check, daylight check of the regions
 """
 
 import argparse
@@ -100,6 +101,11 @@ def clean(args):
     run_script("make_masks.py", *(["--all"] if args.all else ["--weeks", *args.weeks]))
 
 
+def solar(args):
+    # sunrise and sunset in the instrument clock, checked against dfo's daytime intervals
+    run_script("solar.py", *(["--split", args.split] if args.split else []))
+
+
 def main():
     parser = argparse.ArgumentParser(description="Run a step of the fish classification pipeline.")
     steps = parser.add_subparsers(dest="step", required=True)
@@ -128,9 +134,12 @@ def main():
     which.add_argument("--weeks", type=int, nargs="+", help="week numbers, e.g. --weeks 3 53")
     which.add_argument("--all", action="store_true", help="every week with a saved Sv file")
 
+    p = steps.add_parser("solar", help="sunrise and sunset, clock check, daylight check of the labelled regions")
+    p.add_argument("--split", help="split whose regions are checked (default: split in config.yaml)")
+
     args = parser.parse_args()
     {"check": check, "sort": sort, "count": count, "regions": regions, "sv": sv,
-     "clean": clean}[args.step](args)
+     "clean": clean, "solar": solar}[args.step](args)
 
 
 if __name__ == "__main__":
