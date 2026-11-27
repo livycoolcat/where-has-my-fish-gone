@@ -21,6 +21,13 @@ DEFAULT_REGIONS_DIR = path("regions_evr")
 DEFAULT_WINDOWS_CSV = path("evr_windows")
 DEFAULT_SPLIT = setting("split")                      # e.g. split_7030
 DEFAULT_SPLIT_FRAC = setting("splits")[DEFAULT_SPLIT] # e.g. 0.15
+# a split in config.yaml is either a number (week groups) or settings with frac, group and balance_season
+if isinstance(DEFAULT_SPLIT_FRAC, dict):
+    DEFAULT_SPLIT_FRAC = DEFAULT_SPLIT_FRAC["frac"]
+
+# seasons used to balance day splits, by month of the region start
+SEASONS = {3: "mar_apr", 4: "mar_apr", 5: "may", 6: "jun_jul", 7: "jun_jul", 8: "aug_sep", 9: "aug_sep",
+           10: "oct_nov", 11: "oct_nov", 12: "dec_feb", 1: "dec_feb", 2: "dec_feb"}
 
 # types from echoview
 REG_TYPES = {"0": "bad (no data)", "1": "analysis", "2": "marker", "3": "fishtracks", "4": "bad (empty water)"}
@@ -141,41 +148,46 @@ def parse_evr_file(filepath):
         
     return parsed_regions
 
-def create_splits(df, class_list, seed_val, split_fraction, num_tries=5000):
-    # Try random week assignments to get val/test class shares close to split_fraction
+def create_splits(df, class_list, seed_val, split_fraction, num_tries=5000, group="week", balance_season=False):
+    # try random group assignments and keep the one whose val and test shares are closest to split_fraction
+    # group is week or day, all regions in one group go to the same set so close regions never leak across sets
+    # balance_season also matches the share of each species in each season, not only the overall species share
     valid_data = df[df["use_for_cnn"]]
-    class_counts = valid_data.groupby(["week", "label"]).size().unstack(fill_value=0).reindex(columns=class_list, fill_value=0)
-    
-    week_nums = class_counts.index.to_numpy()
+    columns = ["label", "season"] if balance_season else ["label"]
+    class_counts = valid_data.groupby([group] + columns).size().unstack(columns, fill_value=0)
+    if not balance_season:
+        class_counts = class_counts.reindex(columns=class_list, fill_value=0)
+
+    group_ids = class_counts.index.to_numpy()
     count_matrix = class_counts.to_numpy(float)
-    
-    split_mapping = {int(w): "train" for w in week_nums}
-    k = max(1, round(split_fraction * len(week_nums)))
-    
-    if len(week_nums) >= 3 * k or len(week_nums) >= 3:
+
+    split_mapping = {g: "train" for g in group_ids}
+    k = max(1, round(split_fraction * len(group_ids)))
+
+    if len(group_ids) >= 3 * k or len(group_ids) >= 3:
         totals = np.maximum(count_matrix.sum(axis=0), 1)
         rand_gen = np.random.default_rng(seed_val)
         best_assignment = None
-        
+
         for _ in range(num_tries):
-            p = rand_gen.permutation(len(week_nums))
+            p = rand_gen.permutation(len(group_ids))
             test_idx = p[:k]
             val_idx = p[k:2 * k]
-            
-            # calculate how far off we are from target fraction
+
+            # how far the val and test shares are from the target share
             test_error = np.abs(count_matrix[test_idx].sum(axis=0) / totals - split_fraction).sum()
             val_error = np.abs(count_matrix[val_idx].sum(axis=0) / totals - split_fraction).sum()
             total_error = test_error + val_error
-            
+
             if best_assignment is None or total_error < best_assignment[0]:
                 best_assignment = (total_error, test_idx, val_idx)
-                
+
         for j in best_assignment[1]:
-            split_mapping[int(week_nums[j])] = "test"
+            split_mapping[group_ids[j]] = "test"
         for j in best_assignment[2]:
-            split_mapping[int(week_nums[j])] = "val"
-            
-    return df["week"].map(split_mapping).where(df["use_for_cnn"], "").fillna("")
+            split_mapping[group_ids[j]] = "val"
+
+    return df[group].map(split_mapping).where(df["use_for_cnn"], "").fillna("")
 
 
 if __name__ == "__main__":
@@ -187,6 +199,10 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--split-frac", type=float, default=DEFAULT_SPLIT_FRAC)
     parser.add_argument("--keep-outside-window", action="store_true")
+    parser.add_argument("--group", choices=["week", "day"], default="week",
+                        help="keep each week or each day together in one set (default week)")
+    parser.add_argument("--balance-season", action="store_true",
+                        help="also balance each species per season across train, val and test")
     
     args = parser.parse_args()
 
@@ -327,7 +343,14 @@ if __name__ == "__main__":
     
     is_valid_window = final_df["in_window"] | args.keep_outside_window
     final_df["use_for_cnn"] = (final_df["region_type"] == "analysis") & (final_df["label_id"] >= 0) & is_valid_window
-    final_df["split"] = create_splits(final_df, args.classes, args.seed, args.split_frac)
+    # day groups use the instrument clock date of the region start, season is by month of the start
+    by_day = args.group == "day" or args.balance_season
+    if by_day:
+        starts = pd.to_datetime(final_df["start_time"], format="ISO8601")
+        final_df["day"] = starts.dt.strftime("%Y-%m-%d")
+        final_df["season"] = starts.dt.month.map(SEASONS)
+    final_df["split"] = create_splits(final_df, args.classes, args.seed, args.split_frac,
+                                      group=args.group, balance_season=args.balance_season)
 
     # Export outputs
     args.out.mkdir(parents=True, exist_ok=True)
@@ -366,6 +389,9 @@ if __name__ == "__main__":
         status_word = 'kept' if args.keep_outside_window else 'dropped'
         print(f"\n{len(out_of_window)} labelled regions were outside their window ({status_word}). Sample: {out_of_window['key'].tolist()[:8]}")
         
-    print("\n--- Train/Val/Test Split ---")
+    print(f"\n--- Train/Val/Test Split (grouped by {args.group}"
+          f"{', balanced by season' if args.balance_season else ''}) ---")
     print(pd.crosstab(kept_df["split"], kept_df["label"]).to_string())
+    if by_day:
+        print(pd.crosstab([kept_df["split"], kept_df["label"]], kept_df["season"]).to_string())
     print(f"\nOutputs written to {args.out}")

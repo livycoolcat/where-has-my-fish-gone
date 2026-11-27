@@ -54,7 +54,7 @@ Run everything from the repo folder with `pipeline.py`. Paths come from `config.
 | 2 | `python pipeline.py clean --all` | Cleaning step 1: a bad-data mask per week (`data/processed/Sv/weekN_mask.zarr`, same grid as the Sv) from DFO's bad-data regions (.EVR type 0) and the end of deployment (`bad_data_after` in `config.yaml`). Lists what was masked in `data/processed/bad_data/`. Use as `Sv.where(mask == 0)` |
 | 3 | `python pipeline.py solar` | Sunrise and sunset for every day in the instrument clock (`data/processed/daytime/sun_times.csv`), a check of `clock_utc_offset` against DFO's daytime cell exports, and a check that every labelled region is in daylight. Only daytime data are used for both models |
 
-**Choosing a split:** `split_7030` is 70% train / 15% val / 15% test, `split_8020` is 60% / 20% / 20% (split by week). Set the one everyone uses in `config.yaml` (`split: split_7030`), or add `--split split_8020` to a command.
+**Choosing a split:** `split_7030` is 70% train / 15% val / 15% test, `split_8020` is 60% / 20% / 20% (split by week). `split_day_7030` and `split_day_8020` use the same shares but keep whole days together and balance each species per season. Set the one everyone uses in `config.yaml` (`split: split_7030`), or add `--split split_8020` to a command.
 
 Outputs: region CSVs in `data/processed/split_*/`, Sv in `data/processed/Sv/weekN_Sv.zarr`, plots in `data/processed/Sv/plots/`.
 

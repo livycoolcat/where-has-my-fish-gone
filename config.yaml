@@ -19,6 +19,9 @@ processed:    data/processed                            # region CSVs per split
 splits:
   split_7030: 0.15
   split_8020: 0.20
+  # same shares, but whole days are kept together (not weeks) and each species is balanced per season
+  split_day_7030: {frac: 0.15, group: day, balance_season: true}
+  split_day_8020: {frac: 0.20, group: day, balance_season: true}
 
 # Which split the later steps use (change here, or use --split on the command line)
 split: split_7030

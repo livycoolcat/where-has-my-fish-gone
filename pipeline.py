@@ -73,13 +73,18 @@ def regions(args):
     # Region CSVs (times, depths, labels) and the train/val/test split, for each split in config.yaml
     if args.split and args.split not in setting("splits"):
         sys.exit(f"Unknown split '{args.split}'. Choose from: {', '.join(setting('splits'))}")
-    for name, frac in setting("splits").items():
+    for name, spec in setting("splits").items():
         if args.split and name != args.split:
             continue
+        # a number means week groups, settings can ask for day groups and season balance
+        spec = spec if isinstance(spec, dict) else {"frac": spec}
+        extra = ["--group", spec.get("group", "week")]
+        if spec.get("balance_season"):
+            extra.append("--balance-season")
         run_script("parse_cropped_regions.py", path("regions_evr"),
                    "--windows", path("evr_windows"),
-                   "--split-frac", frac,
-                   "--out", path("processed") / name)
+                   "--split-frac", spec["frac"],
+                   "--out", path("processed") / name, *extra)
 
 
 def sv(args):
