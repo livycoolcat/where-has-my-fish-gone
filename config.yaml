@@ -22,6 +22,12 @@ splits:
 # Which split the later steps use (change here, or use --split on the command line)
 split: split_7030
 
+# Data cleaning (pipeline.py clean)
+bad_data:     data/processed/bad_data                   # bad_data_list.csv, mask_summary.csv
+# End of deployment: the signal is lost on 1 Mar 2026 (~17:03, surface echo fades out); everything
+# from here on is bad data. DFO's own bad region in Week53.EVR starts at this time.
+bad_data_after: "2026-03-01 16:59:29"
+
 # Outputs (ignored by git)
-sv_output:    data/processed/Sv                         # week1_Sv.zarr, ...
+sv_output:    data/processed/Sv                         # week1_Sv.zarr, week1_mask.zarr, ...
 sv_plots:     data/processed/Sv/plots

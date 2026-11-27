@@ -127,6 +127,12 @@ def load_echo_files(echo_files, xml_path):
     ed_list = []
 
     for echo_file in echo_files:
+        # Skip empty (0-byte) files: echopype cannot read them and fails with a confusing error.
+        # e.g. week54/26031315.01A, the last file of the deployment, when the instrument stopped
+        if os.path.getsize(echo_file) == 0:
+            print(f"Skipping empty file (0 bytes): {echo_file}")
+            continue
+
         print(f"Opening: {echo_file}")
 
         ed = ep.open_raw(

@@ -51,6 +51,7 @@ Run everything from the repo folder with `pipeline.py`. Paths come from `config.
 | Labels | `python pipeline.py regions` | Region CSVs (times, depths, labels) and train/val/test splits, for every split in `config.yaml`. Add `--split split_8020` for just one |
 | 1 | `python pipeline.py sv --weeks 1 5` | Weekly Sv with calibration and depth, plus check plots, for the weeks you list |
 | 1 | `python pipeline.py sv --all --no-plots` | Sv for every week. Add `--redo` to remake weeks already saved |
+| 2 | `python pipeline.py clean --all` | Cleaning step 1: a bad-data mask per week (`data/processed/Sv/weekN_mask.zarr`, same grid as the Sv) from DFO's bad-data regions (.EVR type 0) and the end of deployment (`bad_data_after` in `config.yaml`). Lists what was masked in `data/processed/bad_data/`. Use as `Sv.where(mask == 0)` |
 
 **Choosing a split:** `split_7030` is 70% train / 15% val / 15% test, `split_8020` is 60% / 20% / 20% (split by week). Set the one everyone uses in `config.yaml` (`split: split_7030`), or add `--split split_8020` to a command.
 
