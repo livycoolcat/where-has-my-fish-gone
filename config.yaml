@@ -28,6 +28,9 @@ bad_data:     data/processed/bad_data                   # bad_data_list.csv, mas
 # End of deployment: the signal is lost on 1 Mar 2026 (~17:03, surface echo fades out); everything
 # from here on is bad data. DFO's own bad region in Week53.EVR starts at this time.
 bad_data_after: "2026-03-01 16:59:29"
+# dfo's surface line comes from 10 min intervals that only cover their daytime window; a ping further
+# than this from any interval has no surface line (mask code 16 in daytime)
+dfo_line_max_gap_min: 60
 
 # Daytime (pipeline.py solar)
 daytime:      data/processed/daytime                    # sun_times.csv
