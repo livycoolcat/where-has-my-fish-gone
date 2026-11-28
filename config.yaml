@@ -72,3 +72,8 @@ daytime_min_elevation: 0
 # Outputs (ignored by git)
 sv_output:    data/processed/Sv                         # week1_Sv.zarr, week1_mask.zarr, ...
 sv_plots:     data/processed/Sv/plots
+crops:        data/processed/crops                      # crops.npz and crops_index.csv for the cnn (python pipeline.py crops)
+
+# CNN crops: one fixed window around every labelled region, same size for all regions so school
+# size and shape stay comparable (pings are 12 s apart, samples about 0.11 m), saved in raw dB
+crop_window: {pings: 64, samples: 512}                  # about 13 min x 57 m

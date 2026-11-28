@@ -114,6 +114,11 @@ def solar(args):
     run_script("solar.py", *(["--split", args.split] if args.split else []))
 
 
+def crops(args):
+    # fixed size Sv windows around every labelled region, in raw dB, for the cnn
+    run_script("make_crops.py", *(["--split", args.split] if args.split else []))
+
+
 def main():
     parser = argparse.ArgumentParser(description="Run a step of the fish classification pipeline.")
     steps = parser.add_subparsers(dest="step", required=True)
@@ -145,9 +150,12 @@ def main():
     p = steps.add_parser("solar", help="sunrise and sunset, clock check, daylight check of the labelled regions")
     p.add_argument("--split", help="split whose regions are checked (default: split in config.yaml)")
 
+    p = steps.add_parser("crops", help="fixed size Sv windows around every labelled region for the CNN")
+    p.add_argument("--split", help="split whose regions are cropped (default: split in config.yaml, all have the same regions)")
+
     args = parser.parse_args()
     {"check": check, "sort": sort, "count": count, "regions": regions, "sv": sv,
-     "clean": clean, "solar": solar}[args.step](args)
+     "clean": clean, "solar": solar, "crops": crops}[args.step](args)
 
 
 if __name__ == "__main__":
