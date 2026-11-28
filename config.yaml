@@ -37,6 +37,14 @@ splits:
   kfold5_week_season: {folds: 5, group: week, balance_season: true}
   kfold5_day_season: {folds: 5, group: day, balance_season: true}
 
+# Labelled regions left out of every split, before the splits are made (key: reason)
+# The key is the .EVR file name and region id, as in regions_manifest.csv (e.g. Week44_r14)
+exclude_regions:
+  Week44_r14: >-
+    labelled Herring (analysis) but an 18 h box over the night of 28 to 29 Dec 2025 at 62 to 73 m,
+    no school in the echogram; matches the timing of DFO's nightly bad data boxes and fills the one
+    night in week 44 without one, so likely that box with the wrong class, type and depth
+
 # Which split the later steps use (change here, or use --split on the command line)
 # To use a different one on your computer only, put split: <name> in config.local.yaml
 split: week_species_701515

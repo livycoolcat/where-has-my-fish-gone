@@ -25,6 +25,9 @@ DEFAULT_SPLIT_FRAC = setting("splits")[DEFAULT_SPLIT] # e.g. 0.15
 if isinstance(DEFAULT_SPLIT_FRAC, dict):
     DEFAULT_SPLIT_FRAC = DEFAULT_SPLIT_FRAC.get("frac", 0.15)   # k fold splits have no frac
 
+# labelled regions left out of every split, key (e.g. Week44_r14) and the reason, from config.yaml
+EXCLUDED_REGIONS = setting("exclude_regions") or {}
+
 # seasons used to balance splits, by month of the region start
 SEASONS = {3: "mar_apr", 4: "mar_apr", 5: "may", 6: "jun_jul", 7: "jun_jul", 8: "aug_sep", 9: "aug_sep",
            10: "oct_nov", 11: "oct_nov", 12: "dec_feb", 1: "dec_feb", 2: "dec_feb"}
@@ -433,6 +436,10 @@ if __name__ == "__main__":
     
     is_valid_window = final_df["in_window"] | args.keep_outside_window
     final_df["use_for_cnn"] = (final_df["region_type"] == "analysis") & (final_df["label_id"] >= 0) & is_valid_window
+    # regions listed in exclude_regions in config.yaml are dropped here, before the splits are made,
+    # so they never count towards the balancing
+    final_df["excluded"] = final_df["key"].isin(EXCLUDED_REGIONS)
+    final_df["use_for_cnn"] &= ~final_df["excluded"]
     # day groups use the instrument clock date of the region start, season is by month of the start
     # both are kept for every split so the counts by season can be checked for week splits too
     starts = pd.to_datetime(final_df["start_time"], format="ISO8601")
@@ -454,8 +461,8 @@ if __name__ == "__main__":
     chk_df = pd.DataFrame(check_results)
     chk_df.to_csv(args.out / "evr_window_check.csv", index=False)
     
-    dropped_counts = final_df[~final_df["use_for_cnn"]].groupby(["label", "region_type"]).size()
-    kept_df = final_df[final_df["use_for_cnn"]].drop(columns=["classification", "region_type", "in_window", "use_for_cnn"]).reset_index(drop=True)
+    dropped_counts = final_df[~final_df["use_for_cnn"] & ~final_df["excluded"]].groupby(["label", "region_type"]).size()
+    kept_df = final_df[final_df["use_for_cnn"]].drop(columns=["classification", "region_type", "in_window", "use_for_cnn", "excluded"]).reset_index(drop=True)
     kept_df.to_csv(args.out / "regions_manifest.csv", index=False)
     
     np.savez_compressed(args.out / "regions_polygons.npz", **{k: poly_dict[k] for k in kept_df["key"]})
@@ -474,6 +481,12 @@ if __name__ == "__main__":
     
     dropped_str = "; ".join(f"{a} / {b}: {n}" for (a, b), n in dropped_counts.items())
     print(f"Dropped: {dropped_str if dropped_str else 'None'}")
+    for key in EXCLUDED_REGIONS:
+        found = final_df.loc[final_df["key"] == key, "label"]
+        if found.empty:
+            print(f"Warning: {key} is in exclude_regions in config.yaml but no region has that key")
+        else:
+            print(f"Excluded {key} ({found.iloc[0]}): {EXCLUDED_REGIONS[key]}")
     
     print("\n--- Window Checks ---")
     print(f"OK: {(chk_df['status'] == 'OK').sum()}")

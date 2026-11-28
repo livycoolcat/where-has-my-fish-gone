@@ -64,6 +64,8 @@ Run everything from the repo folder with `pipeline.py`. Paths come from `config.
 | `random_species_701515`, `random_species_602020` | none (each region alone) | species | train / val / test, baseline that ignores time |
 | `kfold5_week_season`, `kfold5_day_season` | week or day | species in each season | `fold` column 0 to 4 for blocked cross validation, `split` is empty |
 
+Regions listed under `exclude_regions` in `config.yaml` (with the reason) are left out of every split before the splits are made. At the moment that is `Week44_r14`, an 18 hour "Herring" box over a night in December that holds no school. To leave out another region, add its key (as in `regions_manifest.csv`) and rerun `python pipeline.py regions`.
+
 Splits balanced on species only keep the best of 5000 random tries (seed 42). Season balanced splits and the k folds use a search that moves and swaps blocks between sets until each set holds its share of every species, overall and in each season. Each split folder has `split_counts.csv` with regions per set (or fold), species and season. The shared default is `split: week_species_701515` in `config.yaml`. To use another one on your computer only, put `split: day_season_701515` (for example) in your `config.local.yaml`, or add `--split day_season_701515` to a single command.
 
 Outputs: region CSVs in `data/processed/<split>/`, Sv in `data/processed/Sv/weekN_Sv.zarr`, plots in `data/processed/Sv/plots/`.
