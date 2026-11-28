@@ -1,0 +1,11 @@
+fold,label,mar_apr,may,jun_jul,aug_sep,oct_nov,dec_feb,total,blocks
+0,Herring,12,9,18,3,0,2,44,6
+0,Salmon,9,2,2,0,14,0,27,5
+1,Herring,10,26,6,2,0,1,45,6
+1,Salmon,8,16,2,2,0,0,28,5
+2,Herring,13,11,11,5,3,1,44,9
+2,Salmon,9,12,2,0,4,0,27,6
+3,Herring,9,18,9,3,3,2,44,8
+3,Salmon,8,7,1,5,6,0,27,6
+4,Herring,10,0,11,4,13,2,40,9
+4,Salmon,8,2,4,2,6,5,27,8

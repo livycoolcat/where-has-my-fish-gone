@@ -13,18 +13,33 @@ region_labels: data/region_labels                       # region counts per spec
 calibration:  data/calibration/azfp_calibration.csv     # EL, DS, TVR, VTX, BP, sound speed, absorption
 processed:    data/processed                            # region CSVs per split
 
-# Train/val/test splits: folder name -> share of weeks for validation AND for test (each)
+# Train/val/test splits: folder name -> share of blocks for validation AND for test (each)
 #   0.15 -> 70% train / 15% val / 15% test
 #   0.20 -> 60% train / 20% val / 20% test
+# A number means week blocks balanced on species only. Settings can change that:
+#   group:          week, day, or region (each region on its own, a random split that ignores time)
+#   balance_season: also balance each species within each season (moves and swaps blocks instead of random tries)
+#   folds:          blocked k fold instead of train/val/test (fold column 0 to folds-1, no frac needed)
+# Every split folder gets regions_manifest.csv and split_counts.csv (regions per set, species and season)
 splits:
-  split_7030: 0.15
-  split_8020: 0.20
+  week_species_701515: 0.15
+  week_species_602020: 0.20
   # same shares, but whole days are kept together (not weeks) and each species is balanced per season
-  split_day_7030: {frac: 0.15, group: day, balance_season: true}
-  split_day_8020: {frac: 0.20, group: day, balance_season: true}
+  day_season_701515: {frac: 0.15, group: day, balance_season: true}
+  day_season_602020: {frac: 0.20, group: day, balance_season: true}
+  # week blocks, each species balanced per season (week_species_701515 leaves May out of val and test)
+  week_season_701515: {frac: 0.15, group: week, balance_season: true}
+  week_season_602020: {frac: 0.20, group: week, balance_season: true}
+  # random baseline: species balanced, ignores time, to measure how much blocking changes the scores
+  random_species_701515: {frac: 0.15, group: region}
+  random_species_602020: {frac: 0.20, group: region}
+  # blocked 5 fold cross validation, each species balanced per season
+  kfold5_week_season: {folds: 5, group: week, balance_season: true}
+  kfold5_day_season: {folds: 5, group: day, balance_season: true}
 
 # Which split the later steps use (change here, or use --split on the command line)
-split: split_7030
+# To use a different one on your computer only, put split: <name> in config.local.yaml
+split: week_species_701515
 
 # Data cleaning (pipeline.py clean)
 bad_data:     data/processed/bad_data                   # bad_data_list.csv, mask_summary.csv

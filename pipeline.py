@@ -6,7 +6,7 @@ Paths come from config.yaml. See README "How to run".
     python pipeline.py sort                   # raw .01A files into week folders
     python pipeline.py count                  # count DFO regions per species
     python pipeline.py regions                # region CSVs for every split in config.yaml
-    python pipeline.py regions --split split_8020   # only one split
+    python pipeline.py regions --split week_species_602020   # only one split
     python pipeline.py sv --weeks 1 5         # Sv for some weeks (with check plots)
     python pipeline.py sv --all --no-plots    # Sv for every week
     python pipeline.py clean --all            # cleaning step 1: bad-data masks for every week
@@ -32,7 +32,7 @@ def run_script(script, *args):
 
 
 def split_manifest(split):
-    # regions_manifest.csv for a split, e.g. data/processed/split_7030/regions_manifest.csv
+    # regions_manifest.csv for a split, e.g. data/processed/week_species_701515/regions_manifest.csv
     split = split or setting("split")
     if split not in setting("splits"):
         sys.exit(f"Unknown split '{split}'. Choose from: {', '.join(setting('splits'))}")
@@ -48,7 +48,7 @@ def check(args):
         ok = p.exists()
         missing += not ok
         print(f"{'OK     ' if ok else 'MISSING'}  {name:13} {p}")
-    print(f"\nSplit used by later steps: {setting('split')} (set in config.yaml)")
+    print(f"\nSplit used by later steps: {setting('split')} (set in config.yaml, or config.local.yaml if you have one)")
     if missing:
         print("Some paths are missing. See README 'Setup'.")
 
@@ -76,14 +76,17 @@ def regions(args):
     for name, spec in setting("splits").items():
         if args.split and name != args.split:
             continue
-        # a number means week groups, settings can ask for day groups and season balance
+        # a number means week groups, settings can ask for day or region groups, season balance or k folds
         spec = spec if isinstance(spec, dict) else {"frac": spec}
         extra = ["--group", spec.get("group", "week")]
         if spec.get("balance_season"):
             extra.append("--balance-season")
+        if spec.get("folds"):
+            extra += ["--folds", spec["folds"]]
+        else:
+            extra += ["--split-frac", spec["frac"]]
         run_script("parse_cropped_regions.py", path("regions_evr"),
                    "--windows", path("evr_windows"),
-                   "--split-frac", spec["frac"],
                    "--out", path("processed") / name, *extra)
 
 
@@ -124,7 +127,7 @@ def main():
     steps.add_parser("count", help="count DFO regions per species and week")
 
     p = steps.add_parser("regions", help="make region CSVs and train/val/test splits")
-    p.add_argument("--split", help="only this split, e.g. split_7030 (default: all in config.yaml)")
+    p.add_argument("--split", help="only this split, e.g. week_species_701515 (default: all in config.yaml)")
 
     p = steps.add_parser("sv", help="make weekly Sv files")
     which = p.add_mutually_exclusive_group(required=True)

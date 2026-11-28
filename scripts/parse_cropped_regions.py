@@ -19,13 +19,13 @@ import pandas as pd
 # Paths and the default split come from config.yaml
 DEFAULT_REGIONS_DIR = path("regions_evr")
 DEFAULT_WINDOWS_CSV = path("evr_windows")
-DEFAULT_SPLIT = setting("split")                      # e.g. split_7030
+DEFAULT_SPLIT = setting("split")                      # e.g. week_species_701515
 DEFAULT_SPLIT_FRAC = setting("splits")[DEFAULT_SPLIT] # e.g. 0.15
 # a split in config.yaml is either a number (week groups) or settings with frac, group and balance_season
 if isinstance(DEFAULT_SPLIT_FRAC, dict):
-    DEFAULT_SPLIT_FRAC = DEFAULT_SPLIT_FRAC["frac"]
+    DEFAULT_SPLIT_FRAC = DEFAULT_SPLIT_FRAC.get("frac", 0.15)   # k fold splits have no frac
 
-# seasons used to balance day splits, by month of the region start
+# seasons used to balance splits, by month of the region start
 SEASONS = {3: "mar_apr", 4: "mar_apr", 5: "may", 6: "jun_jul", 7: "jun_jul", 8: "aug_sep", 9: "aug_sep",
            10: "oct_nov", 11: "oct_nov", 12: "dec_feb", 1: "dec_feb", 2: "dec_feb"}
 
@@ -148,23 +148,98 @@ def parse_evr_file(filepath):
         
     return parsed_regions
 
-def create_splits(df, class_list, seed_val, split_fraction, num_tries=5000, group="week", balance_season=False):
-    # try random group assignments and keep the one whose val and test shares are closest to split_fraction
-    # group is week or day, all regions in one group go to the same set so close regions never leak across sets
-    # balance_season also matches the share of each species in each season, not only the overall species share
+def group_counts(df, class_list, group, balance_season):
+    # regions per group (rows) and per species, or per species and season (columns), for the regions kept
     valid_data = df[df["use_for_cnn"]]
     columns = ["label", "season"] if balance_season else ["label"]
     class_counts = valid_data.groupby([group] + columns).size().unstack(columns, fill_value=0)
     if not balance_season:
         class_counts = class_counts.reindex(columns=class_list, fill_value=0)
+    return class_counts.index.to_numpy(), class_counts.to_numpy(float)
 
-    group_ids = class_counts.index.to_numpy()
-    count_matrix = class_counts.to_numpy(float)
+
+def balance_matrix(df, class_list, group):
+    # regions per group for each species, then for each species in each season, side by side
+    group_ids, species = group_counts(df, class_list, group, False)
+    _, by_season = group_counts(df, class_list, group, True)
+    return group_ids, np.hstack([species, by_season])
+
+
+def local_search(count_matrix, shares, seed_val, restarts=20):
+    # put every group (row) in one set so each set holds its share of every column, counted in regions
+    # so big cells (may herring) weigh more than small ones (dec_feb salmon)
+    # starts from a random assignment and keeps moving one group, or swapping two, while that gets closer
+    # restarts a few times from new random starts and keeps the best, returns the set index of each group
+    shares = np.asarray(shares, float)
+    target = shares[:, None] * count_matrix.sum(axis=0)
+    rand_gen = np.random.default_rng(seed_val)
+    n, n_sets = len(count_matrix), len(shares)
+    best_assignment = None
+
+    def error(set_counts):
+        return np.abs(set_counts - target).sum()
+
+    for _ in range(restarts):
+        set_of = rand_gen.choice(n_sets, n, p=shares)
+        set_counts = np.array([count_matrix[set_of == s].sum(axis=0) for s in range(n_sets)])
+        improved = True
+        while improved:
+            improved = False
+            for i in rand_gen.permutation(n):
+                # move group i to another set
+                for s in range(n_sets):
+                    si = set_of[i]
+                    if s == si:
+                        continue
+                    before = error(set_counts)
+                    set_counts[si] -= count_matrix[i]
+                    set_counts[s] += count_matrix[i]
+                    if error(set_counts) < before - 1e-9:
+                        set_of[i] = s
+                        improved = True
+                        break
+                    set_counts[si] += count_matrix[i]
+                    set_counts[s] -= count_matrix[i]
+                # swap group i with a few groups in other sets
+                for j in rand_gen.permutation(n)[:30]:
+                    si, sj = set_of[i], set_of[j]
+                    if si == sj:
+                        continue
+                    before = error(set_counts)
+                    change = count_matrix[j] - count_matrix[i]
+                    set_counts[si] += change
+                    set_counts[sj] -= change
+                    if error(set_counts) < before - 1e-9:
+                        set_of[i], set_of[j] = sj, si
+                        improved = True
+                    else:
+                        set_counts[si] -= change
+                        set_counts[sj] += change
+        if best_assignment is None or error(set_counts) < best_assignment[0]:
+            best_assignment = (error(set_counts), set_of.copy())
+
+    return best_assignment[1]
+
+
+def create_splits(df, class_list, seed_val, split_fraction, num_tries=5000, group="week", balance_season=False):
+    # group is the column that holds the block (week, day, or key for one region per block, a random split)
+    # all regions in one group go to the same set so close regions never leak across sets
+    # balance_season: local search so each set holds its share of every species, overall and in each season
+    # (random tries left val with 10 salmon and no may in week_season_701515)
+    # otherwise: try random group assignments and keep the one whose val and test shares are closest to
+    # split_fraction, kept as it was so week_species_701515, week_species_602020 and the random splits do not change
+    if balance_season:
+        group_ids, count_matrix = balance_matrix(df, class_list, group)
+        set_of = local_search(count_matrix, [1 - 2 * split_fraction, split_fraction, split_fraction], seed_val)
+        split_mapping = dict(zip(group_ids, np.array(["train", "val", "test"])[set_of]))
+        return df[group].map(split_mapping).where(df["use_for_cnn"], "").fillna("")
+
+    group_ids, count_matrix = group_counts(df, class_list, group, False)
 
     split_mapping = {g: "train" for g in group_ids}
     k = max(1, round(split_fraction * len(group_ids)))
 
-    if len(group_ids) >= 3 * k or len(group_ids) >= 3:
+    if len(group_ids) >= 3:
         totals = np.maximum(count_matrix.sum(axis=0), 1)
         rand_gen = np.random.default_rng(seed_val)
         best_assignment = None
@@ -190,6 +265,18 @@ def create_splits(df, class_list, seed_val, split_fraction, num_tries=5000, grou
     return df[group].map(split_mapping).where(df["use_for_cnn"], "").fillna("")
 
 
+def create_folds(df, class_list, seed_val, n_folds, group="week", balance_season=False):
+    # blocked k fold: every group goes to one of n_folds folds, so close regions never leak across folds
+    # local search so every fold holds 1/n_folds of each species (and of each species in each season)
+    if balance_season:
+        group_ids, count_matrix = balance_matrix(df, class_list, group)
+    else:
+        group_ids, count_matrix = group_counts(df, class_list, group, False)
+    fold_of = local_search(count_matrix, [1 / n_folds] * n_folds, seed_val)
+    fold_mapping = dict(zip(group_ids, fold_of))
+    return df[group].map(fold_mapping).where(df["use_for_cnn"]).astype("Int64")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Parse weekly .EVR files into CNN-ready label files.")
     parser.add_argument("path", type=Path, nargs="?", default=Path(DEFAULT_REGIONS_DIR), help="Path to EVR folders")
@@ -199,10 +286,13 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--split-frac", type=float, default=DEFAULT_SPLIT_FRAC)
     parser.add_argument("--keep-outside-window", action="store_true")
-    parser.add_argument("--group", choices=["week", "day"], default="week",
-                        help="keep each week or each day together in one set (default week)")
+    parser.add_argument("--group", choices=["week", "day", "region"], default="week",
+                        help="keep each week or each day together in one set (default week), "
+                             "region puts each region in a set on its own (random split, ignores time)")
     parser.add_argument("--balance-season", action="store_true",
                         help="also balance each species per season across train, val and test")
+    parser.add_argument("--folds", type=int, default=0,
+                        help="blocked k fold instead of train/val/test: writes a fold column 0 to folds-1")
     
     args = parser.parse_args()
 
@@ -344,13 +434,19 @@ if __name__ == "__main__":
     is_valid_window = final_df["in_window"] | args.keep_outside_window
     final_df["use_for_cnn"] = (final_df["region_type"] == "analysis") & (final_df["label_id"] >= 0) & is_valid_window
     # day groups use the instrument clock date of the region start, season is by month of the start
-    by_day = args.group == "day" or args.balance_season
-    if by_day:
-        starts = pd.to_datetime(final_df["start_time"], format="ISO8601")
-        final_df["day"] = starts.dt.strftime("%Y-%m-%d")
-        final_df["season"] = starts.dt.month.map(SEASONS)
-    final_df["split"] = create_splits(final_df, args.classes, args.seed, args.split_frac,
-                                      group=args.group, balance_season=args.balance_season)
+    # both are kept for every split so the counts by season can be checked for week splits too
+    starts = pd.to_datetime(final_df["start_time"], format="ISO8601")
+    final_df["day"] = starts.dt.strftime("%Y-%m-%d")
+    final_df["season"] = starts.dt.month.map(SEASONS)
+    group_col = {"week": "week", "day": "day", "region": "key"}[args.group]
+    if args.folds:
+        # k fold regions have no train/val/test, the training code picks one fold as test on each run
+        final_df["split"] = ""
+        final_df["fold"] = create_folds(final_df, args.classes, args.seed, args.folds,
+                                        group=group_col, balance_season=args.balance_season)
+    else:
+        final_df["split"] = create_splits(final_df, args.classes, args.seed, args.split_frac,
+                                          group=group_col, balance_season=args.balance_season)
 
     # Export outputs
     args.out.mkdir(parents=True, exist_ok=True)
@@ -363,6 +459,14 @@ if __name__ == "__main__":
     kept_df.to_csv(args.out / "regions_manifest.csv", index=False)
     
     np.savez_compressed(args.out / "regions_polygons.npz", **{k: poly_dict[k] for k in kept_df["key"]})
+
+    # regions per set (or fold) and species, by season, plus how many blocks each set holds
+    set_col = "fold" if args.folds else "split"
+    seasons = [s for s in dict.fromkeys(SEASONS.values()) if s in set(kept_df["season"])]
+    counts = pd.crosstab([kept_df[set_col], kept_df["label"]], kept_df["season"]).reindex(columns=seasons, fill_value=0)
+    counts["total"] = counts.sum(axis=1)
+    counts["blocks"] = kept_df.groupby([set_col, "label"])[group_col].nunique()
+    counts.to_csv(args.out / "split_counts.csv")
 
     # Print summary stats
     print(f"Parsed {len(chk_df)} files and {len(final_df)} regions.")
@@ -389,9 +493,9 @@ if __name__ == "__main__":
         status_word = 'kept' if args.keep_outside_window else 'dropped'
         print(f"\n{len(out_of_window)} labelled regions were outside their window ({status_word}). Sample: {out_of_window['key'].tolist()[:8]}")
         
-    print(f"\n--- Train/Val/Test Split (grouped by {args.group}"
+    kind = f"{args.folds} folds" if args.folds else "Train/Val/Test Split"
+    print(f"\n--- {kind} (grouped by {args.group}"
           f"{', balanced by season' if args.balance_season else ''}) ---")
-    print(pd.crosstab(kept_df["split"], kept_df["label"]).to_string())
-    if by_day:
-        print(pd.crosstab([kept_df["split"], kept_df["label"]], kept_df["season"]).to_string())
+    print(pd.crosstab(kept_df[set_col], kept_df["label"]).to_string())
+    print(counts.to_string())
     print(f"\nOutputs written to {args.out}")

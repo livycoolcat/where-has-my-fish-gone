@@ -1,0 +1,7 @@
+split,label,mar_apr,may,jun_jul,aug_sep,oct_nov,dec_feb,total,blocks
+test,Herring,13,5,5,6,4,0,33,33
+test,Salmon,7,4,4,2,3,0,20,20
+train,Herring,37,46,42,6,14,6,151,151
+train,Salmon,29,29,6,6,21,5,96,96
+val,Herring,4,13,8,5,1,2,33,33
+val,Salmon,6,6,1,1,6,0,20,20
